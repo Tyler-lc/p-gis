@@ -16,6 +16,7 @@ dependencies:
   - ipykernel
   - xlrd==1.*
   - openpyxl
+  - colorama
 #
 # To install this envionment use
 #

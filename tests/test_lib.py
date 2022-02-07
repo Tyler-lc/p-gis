@@ -41,7 +41,7 @@ def printSuccess(message):
 
 
 def defineArguments(availableTests):
-    parser = argparse.ArgumentParser(description="Test CF Functions")
+    parser = argparse.ArgumentParser(description="Test Module Functions")
     parser.add_argument(
         "--show", help="Show test outputs", dest="show_outputs", action="store_true"
     )
