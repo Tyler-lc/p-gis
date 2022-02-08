@@ -72,6 +72,7 @@ def createNetworkTest():
         },
     ]
 
+    # ex_cap_json is a list not a dict
     ex_cap_json = [
         {
             "source_sink": "residential_buildings",
@@ -247,7 +248,7 @@ def createNetworkTest():
         n_supply_list,
         n_demand_list,
         ex_grid=ex_grid,
-        ex_cap=ex_cap_json,
+        in_cap=ex_cap_json,
         network_resolution=network_resolution,
     )
 
