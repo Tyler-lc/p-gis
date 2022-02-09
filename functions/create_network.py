@@ -45,8 +45,9 @@ def create_network(
 
     polygon = Polygon(coords_list).convex_hull
 
-    ex_cap = pd.read_json(in_cap)
-    # readinf ex_cap from json makes all column names str
+    # ex_cap = pd.read_json(in_cap)
+    ex_cap = pd.DataFrame(in_cap)
+    # readinf ex_cap from json or list makes all column names str
     # convert the datatype of columns names (only time steps) to int from str
     ex_cap_cols = ex_cap.columns.values
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
