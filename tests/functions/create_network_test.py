@@ -252,6 +252,10 @@ def createNetworkTest():
         network_resolution=network_resolution,
     )
 
-    print(nodes)
-    print(edges)
-    print(road_nw)
+    output = {
+        "nodes" : nodes,
+        "edges" : edges,
+        "road_nw" : road_nw
+    }
+
+    print(output)
