@@ -7,6 +7,9 @@
 ################Packages to load################
 ################################################
 
+from typing import Dict
+from black import out
+import jsonpickle
 import osmnx as ox
 import networkx as nx
 import pandas as pd
@@ -15,6 +18,7 @@ from pyomo.opt import *
 import haversine as hs
 from shapely.geometry import Polygon, Point
 import sklearn
+from networkx.readwrite import json_graph
 
 ################################################
 ################Create Network  ################
@@ -327,11 +331,36 @@ def create_network(
     road_nw = ox.graph_from_gdfs(nodes, edges)
 
     # extract the nodes and edges from the graphs and convert them to GoeJSON
-    nodes_json = nodes.to_json()
-    edges_json = edges.to_json()
+    nodes_json = prepare_output(nodes.to_dict("records"))
+    edges_json = prepare_output(edges.to_dict("records"))
+
+    road_nw_json = jsonpickle.encode(json_graph.node_link_data(road_nw))
 
     return (
         nodes_json,
         edges_json,
-        road_nw,
+        road_nw_json,
     )  # road_nw is given as output for test purposes
+
+
+def prepare_output(output_data):
+
+    if isinstance(output_data, list):
+        for datum in output_data:
+            to_del = []
+            for i in datum.keys():
+                if hasattr(datum[i], "__dict__"):
+                    to_del.append(i)
+
+            for i in to_del:
+                del datum[i]
+    else:
+        to_del = []
+        for i in datum.keys():
+            if hasattr(datum[i], "__dict__"):
+                to_del.append(i)
+
+        for i in to_del:
+            del datum[i]
+
+    return output_data
