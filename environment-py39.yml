@@ -1,0 +1,16 @@
+name: emb3rs-gis-module
+channels:
+  - conda-forge
+dependencies:
+  - python=
+  - osmnx=
+  - scikit-learn=
+  - numpy=
+  - pyomo=
+  - haversine=
+  - pandas=
+  - folium=
+  - geopandas=
+  - shapely=
+  - networkx=
+  - colorama=

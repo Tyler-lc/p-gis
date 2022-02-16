@@ -13,6 +13,7 @@ def createNetworkTest():
     n_supply_list = [
         {"id": 1, "coords": [38.77988, -9.10126], "cap": 3},
         {"id": 2, "coords": [38.76992, -9.1014], "cap": 35},
+        # {"id": 6, "coords": [38.75246, -9.23775], "cap": 35},
     ]
 
     n_demand_list = [
@@ -252,10 +253,6 @@ def createNetworkTest():
         network_resolution=network_resolution,
     )
 
-    output = {
-        "nodes" : nodes,
-        "edges" : edges,
-        "road_nw" : road_nw
-    }
+    output = {"nodes": nodes, "edges": edges, "road_nw": road_nw}
 
     print(output)

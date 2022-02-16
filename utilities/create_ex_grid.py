@@ -53,6 +53,6 @@ def create_ex_grid(ex_grid_data):
     ####CREATE GDFS FROM NODES AND EDGES TO CREATE A GEOMETRY ATTRIBUTE#######
 
     nodes, edges = ox.graph_to_gdfs(ex_grid)
-    ex_grid = ox.gdfs_to_graph(nodes, edges)
+    ex_grid = ox.graph_from_gdfs(nodes, edges)
 
     return ex_grid
