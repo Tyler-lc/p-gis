@@ -242,71 +242,71 @@ def create_network(
     ################################################################################
     ######CONNECT SOURCES AND SINKS TO OSM GRAPH####################################
 
-    # for k, v in n_supply_dict.items():
-    #     target, dist = ox.get_nearest_node(
-    #         road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
-    #     )
+    for k, v in n_supply_dict.items():
+        target, dist = ox.get_nearest_node(
+            road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
+        )
 
-    #     road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-    #     source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
+        road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
+        source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
 
-    #     road_nw_streets.add_edge(
-    #         source,
-    #         target,
-    #         length=dist,
-    #         surface_type="street",
-    #         restriction=0,
-    #         surface_pipe=0,
-    #         existing_grid_element=0,
-    #         inner_diameter_existing_grid_element=0,
-    #         costs_existing_grid_element=0,
-    #     )
+        road_nw_streets.add_edge(
+            source,
+            target,
+            length=dist,
+            surface_type="street",
+            restriction=0,
+            surface_pipe=0,
+            existing_grid_element=0,
+            inner_diameter_existing_grid_element=0,
+            costs_existing_grid_element=0,
+        )
 
-    #     road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-    #     road_nw.add_edge(
-    #         k,
-    #         target,
-    #         length=dist,
-    #         surface_type="street",
-    #         restriction=0,
-    #         surface_pipe=0,
-    #         existing_grid_element=0,
-    #         inner_diameter_existing_grid_element=0,
-    #         costs_existing_grid_element=0,
-    #     )
+        road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
+        road_nw.add_edge(
+            k,
+            target,
+            length=dist,
+            surface_type="street",
+            restriction=0,
+            surface_pipe=0,
+            existing_grid_element=0,
+            inner_diameter_existing_grid_element=0,
+            costs_existing_grid_element=0,
+        )
 
-    # for k, v in n_demand_dict.items():
-    #     target, dist = ox.get_nearest_node(
-    #         road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
-    #     )
+    for k, v in n_demand_dict.items():
+        target, dist = ox.get_nearest_node(
+            road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
+        )
 
-    #     road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-    #     source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
+        road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
+        source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
 
-    #     road_nw_streets.add_edge(
-    #         source,
-    #         target,
-    #         length=dist,
-    #         surface_type="street",
-    #         restriction=0,
-    #         surface_pipe=0,
-    #         existing_grid_element=0,
-    #         inner_diameter_existing_grid_element=0,
-    #         costs_existing_grid_element=0,
-    #     )
+        road_nw_streets.add_edge(
+            source,
+            target,
+            length=dist,
+            surface_type="street",
+            restriction=0,
+            surface_pipe=0,
+            existing_grid_element=0,
+            inner_diameter_existing_grid_element=0,
+            costs_existing_grid_element=0,
+        )
 
-    #     road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-    #     road_nw.add_edge(
-    #         k,
-    #         target,
-    #         length=dist,
-    #         surface_type="street",
-    #         restriction=0,
-    #         surface_pipe=0,
-    #         existing_grid_element=0,
-    #         inner_diameter_existing_grid_element=0,
-    #         costs_existing_grid_element=0,
-    #     )
+        road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
+        road_nw.add_edge(
+            k,
+            target,
+            length=dist,
+            surface_type="street",
+            restriction=0,
+            surface_pipe=0,
+            existing_grid_element=0,
+            inner_diameter_existing_grid_element=0,
+            costs_existing_grid_element=0,
+        )
 
     ################################################################################
     ####PROJECT GRAPH AND TURN INTO UNDIRECTED FOR USER DISPLAY#####################
@@ -336,8 +336,7 @@ def create_network(
     nodes_json = nodes.to_dict("records")
     edges_json = edges.to_dict("records")
 
-    road_nw_json = json_graph.node_link_data(road_nw)
-
+    road_nw_json = json_graph.adjacency_data(road_nw)
     return (
         nodes_json,
         edges_json,
