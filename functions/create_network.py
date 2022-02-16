@@ -20,6 +20,8 @@ from shapely.geometry import Polygon, Point
 import sklearn
 from networkx.readwrite import json_graph
 
+from ..utilities.create_ex_grid import create_ex_grid
+
 ################################################
 ################Create Network  ################
 ################################################
@@ -331,10 +333,10 @@ def create_network(
     road_nw = ox.graph_from_gdfs(nodes, edges)
 
     # extract the nodes and edges from the graphs and convert them to GoeJSON
-    nodes_json = prepare_output(nodes.to_dict("records"))
-    edges_json = prepare_output(edges.to_dict("records"))
+    nodes_json = nodes.to_dict("records")
+    edges_json = edges.to_dict("records")
 
-    road_nw_json = jsonpickle.encode(json_graph.node_link_data(road_nw))
+    road_nw_json = json_graph.node_link_data(road_nw)
 
     return (
         nodes_json,
@@ -343,7 +345,43 @@ def create_network(
     )  # road_nw is given as output for test purposes
 
 
-def prepare_output(output_data):
+def run_create_network(input_data):
+    n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution = prepare_input(
+        input_data
+    )
+
+    nodes, edges, road_nw = create_network(
+        n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution
+    )
+
+    return prepare_output(nodes, edges, road_nw)
+
+
+## Prepare Input Data to Function
+def prepare_input(input_data):
+    n_supply_list = input_data["n_supply_list"]
+    n_demand_list = input_data["n_demand_list"]
+    ex_grid_data_json = input_data["ex_grid_data_json"]
+    in_cap = input_data["in_cap"]
+    network_resolution = input_data["network_resolution"]
+
+    ex_grid = create_ex_grid(ex_grid_data_json)
+
+    return n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution
+
+
+## Prepare Output Data to Wrapper
+def prepare_output(nodes, edges, road_nw):
+
+    clean_nodes = remove_nonjson(nodes)
+    clean_edges = remove_nonjson(edges)
+    road_nw_json = jsonpickle.encode(road_nw)
+
+    return {"nodes": clean_nodes, "edges": clean_edges, "road_nw": road_nw_json}
+
+
+## Utilities
+def remove_nonjson(output_data):
 
     if isinstance(output_data, list):
         for datum in output_data:
