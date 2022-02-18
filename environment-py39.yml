@@ -15,3 +15,5 @@ dependencies:
   - networkx=
   - colorama=
   - jsonpickle=
+  - pip:
+      - gurobipy==9.5.1

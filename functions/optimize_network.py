@@ -21,13 +21,14 @@ import json
 ################Optimize Network################
 ################################################
 
+
 def optimize_network(
     nodes,
     edges,
     road_nw,
     use,
-    n_supply_dict,
-    n_demand_dict,
+    n_supply_list,
+    n_demand_list,
     water_den,
     factor_street_terrain,
     factor_street_overland,
@@ -47,9 +48,9 @@ def optimize_network(
     vc_pip,
     vc_pip_ex,
     invest_pumps,
-    ex_cap=pd.DataFrame(),
+    ex_cap={},
 ):
-
+    # TODO: Remove this because everything is already dictionaries
     invest_pumps = json.loads(invest_pumps)
     fc_dig_st = json.loads(fc_dig_st)
     vc_dig_st = json.loads(vc_dig_st)
@@ -69,14 +70,23 @@ def optimize_network(
     ground_temp = json.loads(ground_temp)
     ambient_temp = json.loads(ambient_temp)
 
-    ex_cap = pd.read_json(ex_cap)
+    ex_cap = pd.DataFrame(ex_cap)
     # readinf ex_cap from json makes all column names str
     # convert the datatype of columns names (only time steps) to int from str
     ex_cap_cols = ex_cap.columns.values
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
     ex_cap.columns = ex_cap_cols
 
-    surface_losses_df = pd.read_json(surface_losses_df)
+    surface_losses_dict = json.loads(surface_losses_df)
+    surface_losses_df = pd.DataFrame(surface_losses_dict)
+
+    n_supply_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
+    }
+
+    n_demand_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
+    }
 
     if use == "JSON":
         nodes = gpd.read_file(nodes)
@@ -89,6 +99,10 @@ def optimize_network(
         road_nw = ox.gdfs_to_graph(nodes, edges)
     elif use == "road_nw":
         nodes, edges = ox.graph_to_gdfs(road_nw)
+
+    ######## Pass osmid to nodes
+    for node in road_nw.nodes:
+        road_nw.nodes[node]["osmid"] = node
 
     road_nw_area = road_nw.copy()
     # nodes, edges = ox.graph_to_gdfs(road_nw) #we don't need this anymore bc we are getting nodes and edges as an input
