@@ -35,7 +35,7 @@ def create_network(
     ex_cap={},
     ex_grid=nx.MultiDiGraph(),
     network_resolution="high",
-    coords_list = []
+    coords_list=[],
 ):
     polygon = Polygon(coords_list).convex_hull
 
@@ -366,20 +366,32 @@ def create_network(
     return (
         nodes_json,
         edges_json,
-        road_nw
+        road_nw,
+        n_demand_dict,
+        n_supply_dict,
     )  # road_nw is given as output for test purposes
 
 
 def run_create_network(input_data):
-    n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution, coords_list = prepare_input(
-        input_data
+    (
+        n_supply_list,
+        n_demand_list,
+        ex_grid,
+        in_cap,
+        network_resolution,
+        coords_list,
+    ) = prepare_input(input_data)
+
+    nodes, edges, road_nw, n_demand_dict, n_supply_dict = create_network(
+        n_supply_dict=n_supply_list,
+        n_demand_dict=n_demand_list,
+        ex_grid=ex_grid,
+        ex_cap=in_cap,
+        network_resolution=network_resolution,
+        coords_list=coords_list,
     )
 
-    nodes, edges, road_nw = create_network(
-        n_supply_dict = n_supply_list, n_demand_dict = n_demand_list, ex_grid = ex_grid, ex_cap = in_cap, network_resolution = network_resolution, coords_list = coords_list
-    )
-
-    return prepare_output(nodes, edges, road_nw)
+    return prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict)
 
 
 ## Prepare Input Data to Function
@@ -406,11 +418,18 @@ def prepare_input(input_data):
             coords_list.append(Point([v["coords"][1], v["coords"][0]]))
             coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
 
-    return n_supply_dict, n_demand_dict, ex_grid, in_cap, network_resolution, coords_list
+    return (
+        n_supply_dict,
+        n_demand_dict,
+        ex_grid,
+        in_cap,
+        network_resolution,
+        coords_list,
+    )
 
 
 ## Prepare Output Data to Wrapper
-def prepare_output(nodes, edges, road_nw):
+def prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict):
 
     clean_nodes = remove_nonjson(nodes)
     clean_edges = remove_nonjson(edges)
@@ -419,8 +438,9 @@ def prepare_output(nodes, edges, road_nw):
     return {
         "nodes": clean_nodes,
         "edges": clean_edges,
-        "road_nw": road_nw_json,
-        "demo": 5,
+        "road_nw": road_nw,
+        "n_demand_dict": n_demand_dict,
+        "n_supply_dict": n_supply_dict,
     }
 
 

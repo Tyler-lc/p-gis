@@ -7,6 +7,7 @@
 ################Packages to load################
 ################################################
 
+import jsonpickle
 import osmnx as ox
 import networkx as nx
 import pandas as pd
@@ -26,12 +27,11 @@ import gurobipy as gp
 
 
 def optimize_network(
-    nodes,
-    edges,
+    nodes,  # TODO :Might need Later
+    edges,  # TODO :Might need Later
     road_nw,
-    use,
-    n_supply_list,
-    n_demand_list,
+    n_supply_dict,
+    n_demand_dict,
     water_den,
     factor_street_terrain,
     factor_street_overland,
@@ -83,25 +83,8 @@ def optimize_network(
     surface_losses_dict = json.loads(surface_losses_df)
     surface_losses_df = pd.DataFrame(surface_losses_dict)
 
-    n_supply_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
-    }
-
-    n_demand_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
-    }
-
-    if use == "JSON":
-        nodes = gpd.read_file(nodes)
-        nodes.set_index("id", inplace=True)
-        nodes.index.name = None
-
-        edges = gpd.read_file(edges)
-        edges.drop("id", axis=1, inplace=True)
-
-        road_nw = ox.gdfs_to_graph(nodes, edges)
-    elif use == "road_nw":
-        nodes, edges = ox.graph_to_gdfs(road_nw)
+    # road_nw = jsonpickle.decode(road_nw_json)
+    nodes, edges = ox.graph_to_gdfs(road_nw)
 
     ######## Pass osmid to nodes
     for node in road_nw.nodes:
