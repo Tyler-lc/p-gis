@@ -30,27 +30,13 @@ from ..utilities.create_ex_grid import create_ex_grid
 
 
 def create_network(
-    n_supply_list,
-    n_demand_list,
+    n_supply_dict,
+    n_demand_dict,
     ex_cap={},
     ex_grid=nx.MultiDiGraph(),
     network_resolution="high",
-):
     coords_list = []
-
-    for v in n_supply_list:
-        for v1 in n_demand_list:
-            coords_list.append(Point([v["coords"][1], v["coords"][0]]))
-            coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
-
-    n_supply_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
-    }
-
-    n_demand_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
-    }
-
+):
     polygon = Polygon(coords_list).convex_hull
 
     ex_cap = pd.DataFrame(ex_cap)
@@ -374,23 +360,23 @@ def create_network(
     road_nw = ox.graph_from_gdfs(nodes, edges)
 
     # extract the nodes and edges from the graphs and convert them to GoeJSON
-    nodes_json = nodes.to_json()
-    edges_json = edges.to_json()
+    nodes_json = nodes.to_dict("records")
+    edges_json = edges.to_dict("records")
 
     return (
-        nodes,
-        edges,
-        road_nw,
+        nodes_json,
+        edges_json,
+        road_nw
     )  # road_nw is given as output for test purposes
 
 
 def run_create_network(input_data):
-    n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution = prepare_input(
+    n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution, coords_list = prepare_input(
         input_data
     )
 
     nodes, edges, road_nw = create_network(
-        n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution
+        n_supply_dict = n_supply_list, n_demand_dict = n_demand_list, ex_grid = ex_grid, ex_cap = in_cap, network_resolution = network_resolution, coords_list = coords_list
     )
 
     return prepare_output(nodes, edges, road_nw)
@@ -406,7 +392,21 @@ def prepare_input(input_data):
 
     ex_grid = create_ex_grid(ex_grid_data_json)
 
-    return n_supply_list, n_demand_list, ex_grid, in_cap, network_resolution
+    n_supply_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
+    }
+
+    n_demand_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
+    }
+
+    coords_list = []
+    for v in n_supply_list:
+        for v1 in n_demand_list:
+            coords_list.append(Point([v["coords"][1], v["coords"][0]]))
+            coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
+
+    return n_supply_dict, n_demand_dict, ex_grid, in_cap, network_resolution, coords_list
 
 
 ## Prepare Output Data to Wrapper
@@ -438,7 +438,7 @@ def remove_nonjson(output_data):
                 del datum[i]
     else:
         to_del = []
-        for i in datum.keys():
+        for i in output_data.keys():
             if hasattr(datum[i], "__dict__"):
                 to_del.append(i)
 

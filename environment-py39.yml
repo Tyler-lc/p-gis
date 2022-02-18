@@ -6,7 +6,7 @@ dependencies:
   - osmnx=
   - scikit-learn=
   - numpy=
-  - pyomo=
+  - pyomo=5.7
   - haversine=
   - pandas=
   - folium=
