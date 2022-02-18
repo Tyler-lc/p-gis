@@ -659,7 +659,9 @@ def optimize_network(
             result_data = {}
 
             for i in keys_list:
-                result_data[i] = result_data_flow[i] + result_data_cap_add[i]
+                result_data[i] = (result_data_flow[i] or 0) + (
+                    result_data_cap_add[i] or 0
+                )
 
             result_data_all_TS.append(
                 pd.DataFrame.from_dict(result_data, orient="index")
@@ -1043,7 +1045,7 @@ def optimize_network(
     )
     # res_sources_sinks.loc[len(res_sources_sinks)] = sums_.values
     sums = dict(zip(res_sources_sinks.columns.values[1:], sums_.values[1:]))
-    res_sources_sinks.to_excel("Results_GIS.xlsx", index=False)
+    res_source_sinks_dict = res_sources_sinks.to_dict("records")
 
     # make the calculations for TEO
     losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / (1000 * len(N_demand))
@@ -1067,7 +1069,7 @@ def optimize_network(
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
-
+    edges = edges.reset_index(level=[0, 1, 2])
     edges["from_to"] = (
         "(" + edges["u"].astype(str) + ", " + edges["v"].astype(str) + ")"
     )  ####create new variable in edges where solution can be retrieved from
@@ -1109,67 +1111,67 @@ def optimize_network(
     nodes_solution  ###nodes of solution network
 
     # network = ox.gdfs_to_graph(nodes_solution, edges_solution)
+    # TODO: Removed Folium
+    # m = folium.Map(
+    #     location=[
+    #         list(n_demand_dict.values())[0]["coords"][0],
+    #         list(n_demand_dict.values())[0]["coords"][1],
+    #     ],
+    #     zoom_start=11,
+    #     control_scale=True,
+    # )  #####create basemap
+    # #####layer for whole routing area####
+    # style = {
+    #     "fillColor": "#00FFFFFF",
+    #     "color": "#00FFFFFF",
+    # }  ####create colour for layer
+    # whole_area = folium.features.GeoJson(
+    #     edges, name="area", style_function=lambda x: style, overlay=True
+    # )  ###create layer with whole road network
+    # path = folium.features.GeoJson(
+    #     edges_solution, name="path", overlay=True
+    # )  ###create layer with solution edges
 
-    m = folium.Map(
-        location=[
-            list(n_demand_dict.values())[0]["coords"][0],
-            list(n_demand_dict.values())[0]["coords"][1],
-        ],
-        zoom_start=11,
-        control_scale=True,
-    )  #####create basemap
-    #####layer for whole routing area####
-    style = {
-        "fillColor": "#00FFFFFF",
-        "color": "#00FFFFFF",
-    }  ####create colour for layer
-    whole_area = folium.features.GeoJson(
-        edges, name="area", style_function=lambda x: style, overlay=True
-    )  ###create layer with whole road network
-    path = folium.features.GeoJson(
-        edges_solution, name="path", overlay=True
-    )  ###create layer with solution edges
+    # nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)]
 
-    nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_index()
+    # for i in range(0, len(nodes_to_map)):
+    #     sources = folium.Marker(
+    #         location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
+    #         icon=folium.Icon(color="red", icon="tint"),
+    #         popup="Source",
+    #     ).add_to(m)
 
-    for i in range(0, len(nodes_to_map)):
-        sources = folium.Marker(
-            location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
-            icon=folium.Icon(color="red", icon="tint"),
-            popup="Source",
-        ).add_to(m)
+    # sinks = folium.features.GeoJson(
+    #     nodes_solution[nodes_solution["osmid"].isin(N_demand)],
+    #     name="sinks",
+    #     overlay=True,
+    #     tooltip="Sink",
+    # )
 
-    sinks = folium.features.GeoJson(
-        nodes_solution[nodes_solution["osmid"].isin(N_demand)],
-        name="sinks",
-        overlay=True,
-        tooltip="Sink",
-    )
+    # path.add_to(m)  ###add layer to map
+    # whole_area.add_to(m)  ###add layer to map
+    # sinks.add_to(m)
+    # folium.LayerControl().add_to(m)  ###add layer control to map
 
-    path.add_to(m)  ###add layer to map
-    whole_area.add_to(m)  ###add layer to map
-    sinks.add_to(m)
-    folium.LayerControl().add_to(m)  ###add layer control to map
+    # ####add labels
+    # folium.features.GeoJsonPopup(
+    #     fields=[
+    #         "from_to",
+    #         "MW",
+    #         "Diameter",
+    #         "Length",
+    #         "Surface_type",
+    #         "cost_total",
+    #         "Losses [W/m]",
+    #         "Losses [W]",
+    #         "Capacity_limit",
+    #     ],
+    #     labels=True,
+    # ).add_to(path)
 
-    ####add labels
-    folium.features.GeoJsonPopup(
-        fields=[
-            "from_to",
-            "MW",
-            "Diameter",
-            "Length",
-            "Surface_type",
-            "cost_total",
-            "Losses [W/m]",
-            "Losses [W]",
-            "Capacity_limit",
-        ],
-        labels=True,
-    ).add_to(path)
-
-    # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
-    ####save map as html#####
-    m.save("TEST.html")
+    # # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
+    # ####save map as html#####
+    # m.save("TEST.html")
 
     ##############################################################################################
     ##############################################################################################
@@ -1250,4 +1252,5 @@ def optimize_network(
         losses_cost_kw,
         network_solution,
         potential_grid_area,
+        res_source_sinks_dict,
     )
