@@ -17,6 +17,9 @@ import numpy as np
 import folium
 import json
 
+import gurobipy as gp
+
+
 ################################################
 ################Optimize Network################
 ################################################
@@ -265,7 +268,7 @@ def optimize_network(
     ################Pyomo model routing#############
     ################################################
 
-    opt = solvers.SolverFactory("gurobi")
+    opt = solvers.SolverFactory("gurobi_direct")
     model = ConcreteModel()
 
     ###################################################################
@@ -436,7 +439,7 @@ def optimize_network(
         ]
         N = list(data_py.index)
 
-        opt = solvers.SolverFactory("gurobi")
+        opt = solvers.SolverFactory("gurobi_direct")
         model_nw = ConcreteModel()
 
         ###################################################################
@@ -581,7 +584,7 @@ def optimize_network(
             data_py = data_py.fillna(0)
 
             #############SET UP MODEL###########################
-            opt = solvers.SolverFactory("gurobi")
+            opt = solvers.SolverFactory("gurobi_direct")
             model_nw = ConcreteModel()
 
             ###################################################################
