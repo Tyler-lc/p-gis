@@ -249,7 +249,7 @@ def createNetworkTest():
         n_supply_list,
         n_demand_list,
         ex_grid=ex_grid,
-        in_cap=ex_cap_json,
+        ex_cap=ex_cap_json,
         network_resolution=network_resolution,
     )
 

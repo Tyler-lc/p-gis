@@ -7,11 +7,13 @@
 ################Packages to load################
 ################################################
 
+from ctypes import Union
 from typing import Dict
 from black import out
 import jsonpickle
 import osmnx as ox
 import networkx as nx
+from osmnx.distance import euclidean_dist_vec
 import pandas as pd
 from pyomo.environ import *
 from pyomo.opt import *
@@ -30,8 +32,8 @@ from ..utilities.create_ex_grid import create_ex_grid
 def create_network(
     n_supply_list,
     n_demand_list,
+    ex_cap={},
     ex_grid=nx.MultiDiGraph(),
-    in_cap=dict,
     network_resolution="high",
 ):
     coords_list = []
@@ -51,9 +53,8 @@ def create_network(
 
     polygon = Polygon(coords_list).convex_hull
 
-    # ex_cap = pd.read_json(in_cap)
-    ex_cap = pd.DataFrame(in_cap)
-    # readinf ex_cap from json or list makes all column names str
+    ex_cap = pd.DataFrame(ex_cap)
+    # readinf ex_cap from json makes all column names str
     # convert the datatype of columns names (only time steps) to int from str
     ex_cap_cols = ex_cap.columns.values
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
@@ -117,35 +118,59 @@ def create_network(
     else:
         pass
 
+    ######## Pass osmid to nodes
+    for node in road_nw.nodes:
+        road_nw.nodes[node]["osmid"] = node
+
     ###########REMOVE LONGER EDGES BETWEEN POINTS IF MUTIPLE EXIST#######################
     ##AS ONLY ONE (u,v - v,u) EDGE BETWEEN TWO POINTS CAN BE CONSIDERED FOR OPTIMIZATION#
 
-    nodes, edges = ox.graph_to_gdfs(
-        road_nw, fill_edge_geometry=True, node_geometry=True
-    )
+    nodes, edges = ox.graph_to_gdfs(road_nw)
 
     network_edges_crs = edges.crs
     network_nodes_crs = nodes.crs
 
-    road_nw = ox.get_undirected(road_nw)
+    edges_to_drop = []
+    edges = edges.reset_index(level=[0, 1, 2])
+    edges_double = pd.DataFrame(edges)
+    edges_double["id"] = (
+        edges_double["u"].astype(str) + "-" + edges_double["v"].astype(str)
+    )
+
+    for i in edges_double["id"].unique():
+        double_edges = edges_double[edges_double["id"] == i]
+        if len(double_edges) > 1:
+            mx_ind = double_edges["length"].idxmin()
+            mx = double_edges.drop(mx_ind)
+            edges_to_drop.append(mx)
+        else:
+            None
+
+    try:
+        edges_to_drop = pd.concat(edges_to_drop)
+        for i in zip(edges_to_drop["u"], edges_to_drop["v"], edges_to_drop["key"]):
+            road_nw.remove_edge(u=i[0], v=i[1], key=i[2])
+    except:
+        None
 
     #########################REMOVE LOOPS FOR ONE WAYS#######################
     ######HAPPENS IF THE TWO EDGES BETWEEN TWO POINTS DO NOT HAVE THE########
     ###########################SAME LENGTH###################################
 
     nodes, edges = ox.graph_to_gdfs(road_nw)
+    edges = edges.reset_index(level=[0, 1, 2])
 
     edges_one_way = pd.DataFrame(edges[edges["oneway"] == True])
-    edges_one_way["id"] = list(zip(edges_one_way["from"], edges_one_way["to"]))
+    edges_one_way["id"] = list(zip(edges_one_way["u"], edges_one_way["v"]))
 
     edges_to_drop = []
 
     for i in edges_one_way["id"]:
         edges_u_v = edges_one_way[
-            (edges_one_way["from"] == i[0]) & (edges_one_way["to"] == i[1])
+            (edges_one_way["u"] == i[0]) & (edges_one_way["v"] == i[1])
         ]
         edges_v_u = edges_one_way[
-            (edges_one_way["from"] == i[1]) & (edges_one_way["to"] == i[0])
+            (edges_one_way["u"] == i[1]) & (edges_one_way["v"] == i[0])
         ]
         edges_all = pd.concat([edges_u_v, edges_v_u])
         if len(edges_all) > 1:
@@ -159,8 +184,8 @@ def create_network(
         edges_to_drop = pd.concat(edges_to_drop).drop("id", axis=1)
         edges_to_drop = edges_to_drop[~edges_to_drop.index.duplicated(keep="first")]
         edges_to_drop = edges_to_drop.drop_duplicates(subset=["length"], keep="last")
-        for i in zip(edges_to_drop["from"], edges_to_drop["to"], edges_to_drop.index):
-            road_nw.remove_edge(u=i[0], v=i[1])
+        for i in zip(edges_to_drop["u"], edges_to_drop["v"], edges_to_drop["key"]):
+            road_nw.remove_edge(u=i[0], v=i[1], key=i[2])
     except:
         None
 
@@ -243,30 +268,38 @@ def create_network(
     ######CONNECT SOURCES AND SINKS TO OSM GRAPH####################################
 
     for k, v in n_supply_dict.items():
-        target, dist = ox.get_nearest_node(
-            road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
+        dist_edge = ox.get_nearest_edge(
+            road_nw_streets, (v["coords"][0], v["coords"][1])
         )
-
-        road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-        source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
-
-        road_nw_streets.add_edge(
-            source,
-            target,
-            length=dist,
-            surface_type="street",
-            restriction=0,
-            surface_pipe=0,
-            existing_grid_element=0,
-            inner_diameter_existing_grid_element=0,
-            costs_existing_grid_element=0,
+        dist_1 = euclidean_dist_vec(
+            v["coords"][0],
+            v["coords"][1],
+            road_nw_streets.nodes[dist_edge[0]]["y"],
+            road_nw_streets.nodes[dist_edge[0]]["x"],
         )
-
+        dist_2 = euclidean_dist_vec(
+            v["coords"][0],
+            v["coords"][1],
+            road_nw_streets.nodes[dist_edge[1]]["y"],
+            road_nw_streets.nodes[dist_edge[1]]["x"],
+        )
+        dist_dict = {
+            road_nw_streets.nodes[dist_edge[0]]["osmid"]: dist_1,
+            road_nw_streets.nodes[dist_edge[1]]["osmid"]: dist_2,
+        }
+        point_to_connect = min(dist_dict, key=dist_dict.get)
         road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
         road_nw.add_edge(
             k,
-            target,
-            length=dist,
+            point_to_connect,
+            length=hs.haversine(
+                (v["coords"][0], v["coords"][1]),
+                (
+                    road_nw.nodes[point_to_connect]["y"],
+                    road_nw.nodes[point_to_connect]["x"],
+                ),
+            )
+            * 1000,
             surface_type="street",
             restriction=0,
             surface_pipe=0,
@@ -276,30 +309,38 @@ def create_network(
         )
 
     for k, v in n_demand_dict.items():
-        target, dist = ox.get_nearest_node(
-            road_nw_streets, (v["coords"][0], v["coords"][1]), return_dist=True
+        dist_edge = ox.get_nearest_edge(
+            road_nw_streets, (v["coords"][0], v["coords"][1])
         )
-
-        road_nw_streets.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
-        source = ox.get_nearest_node(road_nw_streets, (v["coords"][0], v["coords"][1]))
-
-        road_nw_streets.add_edge(
-            source,
-            target,
-            length=dist,
-            surface_type="street",
-            restriction=0,
-            surface_pipe=0,
-            existing_grid_element=0,
-            inner_diameter_existing_grid_element=0,
-            costs_existing_grid_element=0,
+        dist_1 = euclidean_dist_vec(
+            v["coords"][0],
+            v["coords"][1],
+            road_nw_streets.nodes[dist_edge[0]]["y"],
+            road_nw_streets.nodes[dist_edge[0]]["x"],
         )
-
+        dist_2 = euclidean_dist_vec(
+            v["coords"][0],
+            v["coords"][1],
+            road_nw_streets.nodes[dist_edge[1]]["y"],
+            road_nw_streets.nodes[dist_edge[1]]["x"],
+        )
+        dist_dict = {
+            road_nw_streets.nodes[dist_edge[0]]["osmid"]: dist_1,
+            road_nw_streets.nodes[dist_edge[1]]["osmid"]: dist_2,
+        }
+        point_to_connect = min(dist_dict, key=dist_dict.get)
         road_nw.add_node(k, y=v["coords"][0], x=v["coords"][1], osmid=k)
         road_nw.add_edge(
             k,
-            target,
-            length=dist,
+            point_to_connect,
+            length=hs.haversine(
+                (v["coords"][0], v["coords"][1]),
+                (
+                    road_nw.nodes[point_to_connect]["y"],
+                    road_nw.nodes[point_to_connect]["x"],
+                ),
+            )
+            * 1000,
             surface_type="street",
             restriction=0,
             surface_pipe=0,
@@ -333,14 +374,13 @@ def create_network(
     road_nw = ox.graph_from_gdfs(nodes, edges)
 
     # extract the nodes and edges from the graphs and convert them to GoeJSON
-    nodes_json = nodes.to_dict("records")
-    edges_json = edges.to_dict("records")
+    nodes_json = nodes.to_json()
+    edges_json = edges.to_json()
 
-    road_nw_json = json_graph.adjacency_data(road_nw)
     return (
-        nodes_json,
-        edges_json,
-        road_nw_json,
+        nodes,
+        edges,
+        road_nw,
     )  # road_nw is given as output for test purposes
 
 
@@ -376,7 +416,12 @@ def prepare_output(nodes, edges, road_nw):
     clean_edges = remove_nonjson(edges)
     road_nw_json = jsonpickle.encode(road_nw)
 
-    return {"nodes": clean_nodes, "edges": clean_edges, "road_nw": road_nw_json}
+    return {
+        "nodes": clean_nodes,
+        "edges": clean_edges,
+        "road_nw": road_nw_json,
+        "demo": 5,
+    }
 
 
 ## Utilities
