@@ -362,6 +362,7 @@ def create_network(
     # extract the nodes and edges from the graphs and convert them to GoeJSON
     nodes_json = nodes.to_dict("records")
     edges_json = edges.to_dict("records")
+    ex_cap_json = ex_cap.to_dict("records")
 
     return (
         nodes_json,
@@ -369,6 +370,7 @@ def create_network(
         road_nw,
         n_demand_dict,
         n_supply_dict,
+        ex_cap_json
     )  # road_nw is given as output for test purposes
 
 
@@ -382,7 +384,7 @@ def run_create_network(input_data):
         coords_list,
     ) = prepare_input(input_data)
 
-    nodes, edges, road_nw, n_demand_dict, n_supply_dict = create_network(
+    nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap = create_network(
         n_supply_dict=n_supply_list,
         n_demand_dict=n_demand_list,
         ex_grid=ex_grid,
@@ -391,7 +393,7 @@ def run_create_network(input_data):
         coords_list=coords_list,
     )
 
-    return prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict)
+    return prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap)
 
 
 ## Prepare Input Data to Function
@@ -429,11 +431,11 @@ def prepare_input(input_data):
 
 
 ## Prepare Output Data to Wrapper
-def prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict):
+def prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap):
 
     clean_nodes = remove_nonjson(nodes)
     clean_edges = remove_nonjson(edges)
-    road_nw_json = jsonpickle.encode(road_nw)
+    road_nw_json = jsonpickle.encode(road_nw, unpicklable=True)
 
     return {
         "nodes": clean_nodes,
@@ -441,6 +443,7 @@ def prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict):
         "road_nw": road_nw,
         "n_demand_dict": n_demand_dict,
         "n_supply_dict": n_supply_dict,
+        "ex_cap": ex_cap
     }
 
 
@@ -459,10 +462,10 @@ def remove_nonjson(output_data):
     else:
         to_del = []
         for i in output_data.keys():
-            if hasattr(datum[i], "__dict__"):
+            if hasattr(output_data[i], "__dict__"):
                 to_del.append(i)
 
         for i in to_del:
-            del datum[i]
+            del output_data[i]
 
     return output_data
