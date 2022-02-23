@@ -30,28 +30,18 @@ from ..utilities.create_ex_grid import create_ex_grid
 
 
 def create_network(
-    n_supply_dict,
-    n_demand_dict,
-    ex_cap={},
+    n_supply_dict: dict,
+    n_demand_dict: dict,
+    ex_cap: pd.DataFrame,
     ex_grid=nx.MultiDiGraph(),
     network_resolution="high",
     coords_list=[],
 ):
     polygon = Polygon(coords_list).convex_hull
 
-    ex_cap = pd.DataFrame(ex_cap)
-    # readinf ex_cap from json makes all column names str
-    # convert the datatype of columns names (only time steps) to int from str
-    ex_cap_cols = ex_cap.columns.values
-    ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
-    ex_cap.columns = ex_cap_cols
-
     if len(ex_cap) == 0:
         pass
     else:
-        ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
-            ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
-        )
         ################################################################################
         ######ITERATION TEO - DELETE SOURCES/SINKS THAT WERE EXCLUDED FROM TEO##########
 
@@ -362,16 +352,13 @@ def create_network(
     # extract the nodes and edges from the graphs and convert them to GoeJSON
     nodes_json = nodes.to_dict("records")
     edges_json = edges.to_dict("records")
-    ex_cap_json = ex_cap.to_dict("records")
 
     return (
         nodes_json,
         edges_json,
-        road_nw,
         n_demand_dict,
         n_supply_dict,
-        ex_cap_json
-    )  # road_nw is given as output for test purposes
+    )
 
 
 def run_create_network(input_data):
@@ -379,21 +366,26 @@ def run_create_network(input_data):
         n_supply_list,
         n_demand_list,
         ex_grid,
-        in_cap,
+        ex_cap,
         network_resolution,
         coords_list,
     ) = prepare_input(input_data)
 
-    nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap = create_network(
+    nodes, edges, n_demand_dict, n_supply_dict = create_network(
         n_supply_dict=n_supply_list,
         n_demand_dict=n_demand_list,
         ex_grid=ex_grid,
-        ex_cap=in_cap,
+        ex_cap=ex_cap,
         network_resolution=network_resolution,
         coords_list=coords_list,
     )
 
-    return prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap)
+    return prepare_output(
+        nodes=nodes,
+        edges=edges,
+        n_demand_dict=n_demand_dict,
+        n_supply_dict=n_supply_dict,
+    )
 
 
 ## Prepare Input Data to Function
@@ -420,30 +412,39 @@ def prepare_input(input_data):
             coords_list.append(Point([v["coords"][1], v["coords"][0]]))
             coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
 
+    ex_cap = pd.DataFrame(in_cap)
+    # readinf ex_cap from json makes all column names str
+    # convert the datatype of columns names (only time steps) to int from str
+    ex_cap_cols = ex_cap.columns.values
+    ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
+    ex_cap.columns = ex_cap_cols
+
+    if len(ex_cap) != 0:
+        ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
+            ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
+        )
+
     return (
         n_supply_dict,
         n_demand_dict,
         ex_grid,
-        in_cap,
+        ex_cap,
         network_resolution,
         coords_list,
     )
 
 
 ## Prepare Output Data to Wrapper
-def prepare_output(nodes, edges, road_nw, n_demand_dict, n_supply_dict, ex_cap):
+def prepare_output(nodes, edges, n_demand_dict, n_supply_dict):
 
     clean_nodes = remove_nonjson(nodes)
     clean_edges = remove_nonjson(edges)
-    road_nw_json = jsonpickle.encode(road_nw, unpicklable=True)
 
     return {
         "nodes": clean_nodes,
         "edges": clean_edges,
-        "road_nw": road_nw,
-        "n_demand_dict": n_demand_dict,
-        "n_supply_dict": n_supply_dict,
-        "ex_cap": ex_cap
+        "demand_list": list(n_demand_dict.keys()),
+        "supply_list": list(n_supply_dict.keys()),
     }
 
 

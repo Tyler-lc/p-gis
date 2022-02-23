@@ -10,6 +10,7 @@
 import jsonpickle
 import osmnx as ox
 import networkx as nx
+from osmnx.settings import default_crs
 import pandas as pd
 import geopandas as gpd
 from pyomo.environ import *
@@ -50,16 +51,8 @@ def optimize_network(
     vc_pip: dict,
     vc_pip_ex: dict,
     invest_pumps: dict,
-    ex_cap={},
+    ex_cap:pd.DataFrame,
 ):
-
-    # TODO: Check structure/usage
-    ex_cap = pd.DataFrame(ex_cap)
-    # readinf ex_cap from json makes all column names str
-    # convert the datatype of columns names (only time steps) to int from str
-    ex_cap_cols = ex_cap.columns.values
-    ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
-    ex_cap.columns = ex_cap_cols
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
 
@@ -68,12 +61,15 @@ def optimize_network(
     ################################################################################
     ###########CONVERT GRAPH TO NX GRAPH FOR FURTHER PROCESSING#####################
 
-    road_nw = nx.Graph()
+    road_nw = nx.MultiGraph()
     for node in nodes:
         road_nw.add_node(node["osmid"], **node)
 
     for edge in edges:
         road_nw.add_edge(edge["from"], edge["to"], **edge)
+
+    road_nw.graph["crs"] = "epsg:4326"
+    road_nw.graph["name"] = "generated_road_nw"
 
     nodes, edges = ox.graph_to_gdfs(road_nw)
     road_nw_solution = road_nw.copy()  # TODO: Create NW From nodes and edges
@@ -93,13 +89,13 @@ def optimize_network(
         for k1, v1 in v.items():
             road_nw_data_edges.append(
                 [
-                    v1["length"],
-                    v1["surface_type"],
-                    v1["restriction"],
-                    v1["surface_pipe"],
-                    v1["existing_grid_element"],
-                    v1["inner_diameter_existing_grid_element"],
-                    v1["costs_existing_grid_element"],
+                    v1[0]["length"],
+                    v1[0]["surface_type"],
+                    v1[0]["restriction"],
+                    v1[0]["surface_pipe"],
+                    v1[0]["existing_grid_element"],
+                    v1[0]["inner_diameter_existing_grid_element"],
+                    v1[0]["costs_existing_grid_element"],
                 ]
             )
             road_nw_data_names = list(v1.keys())
