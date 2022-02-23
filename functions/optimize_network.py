@@ -27,52 +27,33 @@ import gurobipy as gp
 
 
 def optimize_network(
-    nodes,  # TODO :Might need Later
-    edges,  # TODO :Might need Later
-    road_nw,
+    nodes,
+    edges,
     n_supply_dict,
     n_demand_dict,
-    water_den,
-    factor_street_terrain,
-    factor_street_overland,
-    heat_capacity,
-    flow_temp,
-    return_temp,
-    surface_losses_dict,
-    ground_temp,
-    ambient_temp,
-    fc_dig_st,
-    vc_dig_st,
-    vc_dig_st_ex,
-    fc_dig_tr,
-    vc_dig_tr,
-    vc_dig_tr_ex,
-    fc_pip,
-    vc_pip,
-    vc_pip_ex,
-    invest_pumps,
+    water_den: dict,
+    factor_street_terrain: dict,
+    factor_street_overland: dict,
+    heat_capacity: dict,
+    flow_temp: dict,
+    return_temp: dict,
+    surface_losses_dict: dict,
+    ground_temp: dict,
+    ambient_temp: dict,
+    fc_dig_st: dict,
+    vc_dig_st: dict,
+    vc_dig_st_ex: dict,
+    fc_dig_tr: dict,
+    vc_dig_tr: dict,
+    vc_dig_tr_ex: dict,
+    fc_pip: dict,
+    vc_pip: dict,
+    vc_pip_ex: dict,
+    invest_pumps: dict,
     ex_cap={},
 ):
-    # TODO: Remove this because everything is already dictionaries
-    invest_pumps = json.loads(invest_pumps)
-    fc_dig_st = json.loads(fc_dig_st)
-    vc_dig_st = json.loads(vc_dig_st)
-    fc_dig_tr = json.loads(fc_dig_tr)
-    vc_dig_tr = json.loads(vc_dig_tr)
-    fc_pip = json.loads(fc_pip)
-    vc_pip = json.loads(vc_pip)
-    vc_dig_st_ex = json.loads(vc_dig_st_ex)
-    vc_dig_tr_ex = json.loads(vc_dig_tr_ex)
-    vc_pip_ex = json.loads(vc_pip_ex)
-    factor_street_terrain = json.loads(factor_street_terrain)
-    factor_street_overland = json.loads(factor_street_overland)
-    flow_temp = json.loads(flow_temp)
-    return_temp = json.loads(return_temp)
-    water_den = json.loads(water_den)
-    heat_capacity = json.loads(heat_capacity)
-    ground_temp = json.loads(ground_temp)
-    ambient_temp = json.loads(ambient_temp)
 
+    # TODO: Check structure/usage
     ex_cap = pd.DataFrame(ex_cap)
     # readinf ex_cap from json makes all column names str
     # convert the datatype of columns names (only time steps) to int from str
@@ -82,25 +63,20 @@ def optimize_network(
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
 
-    # road_nw = jsonpickle.decode(road_nw_json)
-    nodes, edges = ox.graph_to_gdfs(road_nw)
-
-    ######## Pass osmid to nodes
-    for node in road_nw.nodes:
-        road_nw.nodes[node]["osmid"] = node
-
-    road_nw_area = road_nw.copy()
-    nodes, edges = ox.graph_to_gdfs(
-        road_nw
-    )  # we don't need this anymore bc we are getting nodes and edges as an input
+    # TODO: Start of Refactoring
 
     ################################################################################
     ###########CONVERT GRAPH TO NX GRAPH FOR FURTHER PROCESSING#####################
 
-    road_nw = nx.Graph(
-        road_nw
-    )  ###attention - if there would still be two edges in one direction connecting two point, the function would remove one of them
-    # nx.draw(road_nw)
+    road_nw = nx.Graph()
+    for node in nodes:
+        road_nw.add_node(node["osmid"], **node)
+
+    for edge in edges:
+        road_nw.add_edge(edge["from"], edge["to"], **edge)
+
+    nodes, edges = ox.graph_to_gdfs(road_nw)
+    road_nw_solution = road_nw.copy()  # TODO: Create NW From nodes and edges
 
     ################################################################################
     ###########ADD EDGE ATTRIBUTES THAT SHOULD BE PART OF GRAPH ALREADY#############
@@ -130,13 +106,13 @@ def optimize_network(
 
     road_nw_data = dict(zip(road_nw_data_points, road_nw_data_edges))
 
-    # road_nw_data[(25877743, 25877763)][5] = 0.02
-
     ################################################################################
     #########INVERT ALL KEYS TO BE SURE EACH EDGE EXISTS IN BOTH DIRECTIONS#########
 
     for (i, j) in road_nw_data.keys():
         road_nw_data[(j, i)] = road_nw_data[(i, j)]
+
+    # END OF road_nw usage
 
     ################################################################################
     #########DEFINITION OF SOURCES AND SINKS FOR PYOMO##############################
@@ -1181,9 +1157,9 @@ def optimize_network(
     ##############################################################################################
 
     ###create graph object with all solution edges
-    potential_grid_area = road_nw_area.copy()
+    potential_grid_area = road_nw_solution.copy()
 
-    nodes, edges = ox.graph_to_gdfs(road_nw_area)
+    nodes, edges = ox.graph_to_gdfs(road_nw_solution)
 
     edges = edges.reset_index(level=[0, 1, 2])
 
@@ -1221,20 +1197,20 @@ def optimize_network(
     )
 
     edges.set_index(["u", "v", "key"], inplace=True)
-    road_nw_area = ox.graph_from_gdfs(nodes, edges)
+    road_nw_solution = ox.graph_from_gdfs(nodes, edges)
 
     edges_without_flow = [
-        (u, v) for u, v, e in road_nw_area.edges(data=True) if e["MW"] == 0
+        (u, v) for u, v, e in road_nw_solution.edges(data=True) if e["MW"] == 0
     ]
 
     for i in edges_without_flow:
-        road_nw_area.remove_edge(i[0], i[1])
+        road_nw_solution.remove_edge(i[0], i[1])
 
-    nodes_not_connected = list(nx.isolates(road_nw_area))
+    nodes_not_connected = list(nx.isolates(road_nw_solution))
 
-    road_nw_area.remove_nodes_from(nodes_not_connected)
+    road_nw_solution.remove_nodes_from(nodes_not_connected)
 
-    network_solution = road_nw_area
+    network_solution = road_nw_solution
 
     nodes, edges = ox.graph_to_gdfs(network_solution)
     cols_to_drop = [
