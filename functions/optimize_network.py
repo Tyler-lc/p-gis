@@ -38,7 +38,7 @@ def optimize_network(
     heat_capacity,
     flow_temp,
     return_temp,
-    surface_losses_df,
+    surface_losses_dict,
     ground_temp,
     ambient_temp,
     fc_dig_st,
@@ -80,7 +80,6 @@ def optimize_network(
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
     ex_cap.columns = ex_cap_cols
 
-    surface_losses_dict = json.loads(surface_losses_df)
     surface_losses_df = pd.DataFrame(surface_losses_dict)
 
     # road_nw = jsonpickle.decode(road_nw_json)
@@ -91,7 +90,7 @@ def optimize_network(
         road_nw.nodes[node]["osmid"] = node
 
     road_nw_area = road_nw.copy()
-    # nodes, edges = ox.graph_to_gdfs(road_nw) #we don't need this anymore bc we are getting nodes and edges as an input
+    nodes, edges = ox.graph_to_gdfs(road_nw) #we don't need this anymore bc we are getting nodes and edges as an input
 
     ################################################################################
     ###########CONVERT GRAPH TO NX GRAPH FOR FURTHER PROCESSING#####################
@@ -1045,13 +1044,14 @@ def optimize_network(
     )
     # res_sources_sinks.loc[len(res_sources_sinks)] = sums_.values
     sums = dict(zip(res_sources_sinks.columns.values[1:], sums_.values[1:]))
-    res_source_sinks_dict = res_sources_sinks.to_dict("records")
 
     # make the calculations for TEO
     losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / (1000 * len(N_demand))
     cost_in_kw = sums["Total_costs [EUR]"] / (sums["Installed capacity [MW]"] * 1000)
     # the output for TEO
     losses_cost_kw = {"losses_in_kw": losses_in_kw, "cost_in_kw": cost_in_kw}
+
+    res_sources_sinks = res_sources_sinks.to_dict("records")
 
     #######VISUAL RESULTS##################
 
@@ -1182,6 +1182,9 @@ def optimize_network(
     potential_grid_area = road_nw_area.copy()
 
     nodes, edges = ox.graph_to_gdfs(road_nw_area)
+
+    edges = edges.reset_index(level=[0, 1, 2])
+
     edges["from_to"] = (
         "(" + edges["u"].astype(str) + ", " + edges["v"].astype(str) + ")"
     )  ####create new variable in nodes where solution can be retrieved from
@@ -1215,7 +1218,8 @@ def optimize_network(
         inplace=True,
     )
 
-    road_nw_area = ox.gdfs_to_graph(nodes, edges)
+    edges.set_index(["u", "v", "key"], inplace=True)
+    road_nw_area = ox.graph_from_gdfs(nodes, edges)
 
     edges_without_flow = [
         (u, v) for u, v, e in road_nw_area.edges(data=True) if e["MW"] == 0
@@ -1244,13 +1248,73 @@ def optimize_network(
         "to",
     ]
     edges = edges.drop(cols_to_drop, axis=1)
-    network_solution = ox.gdfs_to_graph(nodes, edges)
+    network_solution = ox.graph_from_gdfs(nodes, edges)
+    network_solution_nodes_json = nodes.to_dict("records")
+    network_solution_edges_json = edges.to_dict("records")
+
+    selected_agents = N_supply + N_demand #output to MM: list of sources and sinks exist in the solution
 
     return (
+        prepare_output_optnw(
         res_sources_sinks,
         sums,
         losses_cost_kw,
         network_solution,
+        network_solution_nodes_json,
+        network_solution_edges_json,
         potential_grid_area,
-        res_source_sinks_dict,
+        selected_agents
+        )
     )
+
+    ## Utilities
+def remove_nonjson_optnw(output_data):
+
+    if isinstance(output_data, list):
+        for datum in output_data:
+            to_del = []
+            for i in datum.keys():
+                if hasattr(datum[i], "__dict__"):
+                    to_del.append(i)
+
+            for i in to_del:
+                del datum[i]
+    else:
+        to_del = []
+        for i in output_data.keys():
+            if hasattr(output_data[i], "__dict__"):
+                to_del.append(i)
+
+        for i in to_del:
+            del output_data[i]
+
+    return output_data
+
+## Prepare Output Data to Wrapper
+def prepare_output_optnw(
+        res_sources_sinks, 
+        sums,
+        losses_cost_kw,
+        network_solution,
+        network_solution_nodes_json,
+        network_solution_edges_json,
+        potential_grid_area,
+        selected_agents
+        ):
+
+    network_solution_json = jsonpickle.encode(network_solution.adj, unpicklable=False)
+    potential_grid_area_json = jsonpickle.encode(potential_grid_area.adj, unpicklable=False)
+
+    network_solution_nodes_clean = remove_nonjson_optnw(network_solution_nodes_json)
+    network_solution_edges_clean = remove_nonjson_optnw(network_solution_edges_json)
+
+    return {
+        "res_sources_sinks": res_sources_sinks,
+        "sums": sums,
+        "losses_cost_kw": losses_cost_kw,
+        "network_solution": network_solution_json,
+        "network_solution_nodes": network_solution_nodes_clean,
+        "network_solution_edges": network_solution_edges_clean,
+        "potential_grid_area": potential_grid_area_json,
+        "selected_agents": selected_agents
+    }

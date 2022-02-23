@@ -1,0 +1,117 @@
+'{
+    "py/object": "networkx.classes.coreviews.MultiAdjacencyView",
+    "py/state": {
+        "_atlas": {
+            "1746907352": {
+                "1": {
+                    "0": {
+                        "geometry": {
+                            "py/reduce": [
+                                {
+                                    "py/type": "shapely.geometry.linestring.LineString"
+                                },
+                                {
+                                    "py/tuple": []
+                                },
+                                {
+                                    "py/b64": "AQIAAAACAAAA2udj69z6HUGcpJtvrF5QQQfrOfj69B1B6PoleA1fUEE="
+                                }
+                            ]
+                        },
+                        "from_to": "(1746907352, 1)",
+                        "MW": 0.89,
+                        "Pipe length [m]": 1081.54,
+                        "Surface_type": "street",
+                        "Total costs [EUR]": 785949.41,
+                        "Diameter [m]": 0.093,
+                        "Losses [W/m]": 35.16,
+                        "Losses [W]": 38026.946,
+                        "Capacity limit [MW]": "None"
+                    }
+                },
+                "3": {
+                    "0": {
+                        "geometry": {
+                            "py/reduce": [
+                                {
+                                    "py/type": "shapely.geometry.linestring.LineString"
+                                },
+                                {
+                                    "py/tuple": []
+                                },
+                                {
+                                    "py/b64": "AQIAAAACAAAAFn+BE138HUHo7EP9GV9QQQfrOfj69B1B6PoleA1fUEE="
+                                }
+                            ]
+                        },
+                        "from_to": "(1746907352, 3)",
+                        "MW": 0.89,
+                        "Pipe length [m]": 948.46,
+                        "Surface_type": "street",
+                        "Total costs [EUR]": 689240.88,
+                        "Diameter [m]": 0.093,
+                        "Losses [W/m]": 35.16,
+                        "Losses [W]": 33347.854,
+                        "Capacity limit [MW]": "None"
+                    }
+                },
+                "5": {
+                    "0": {
+                        "geometry": {
+                            "py/reduce": [
+                                {
+                                    "py/type": "shapely.geometry.linestring.LineString"
+                                },
+                                {
+                                    "py/tuple": []
+                                },
+                                {
+                                    "py/b64": "AQIAAAACAAAAzkFCYTL6HUEU8tc2YF9QQQfrOfj69B1B6PoleA1fUEE="
+                                }
+                            ]
+                        },
+                        "from_to": "(1746907352, 5)",
+                        "MW": 0.89,
+                        "Pipe length [m]": 940.22,
+                        "Surface_type": "street",
+                        "Total costs [EUR]": 683252.91,
+                        "Diameter [m]": 0.093,
+                        "Losses [W/m]": 35.16,
+                        "Losses [W]": 33058.135,
+                        "Capacity limit [MW]": "None"
+                    }
+                },
+                "4": {
+                    "0": {
+                        "geometry": {
+                            "py/reduce": [
+                                {
+                                    "py/type": "shapely.geometry.linestring.LineString"
+                                },
+                                {
+                                    "py/tuple": []
+                                },
+                                {
+                                    "py/b64": "AQIAAAACAAAASl708PL2HUG9IAY8KF9QQQfrOfj69B1B6PoleA1fUEE="
+                                }
+                            ]
+                        },
+                        "from_to": "(1746907352, 4)",
+                        "MW": 0.89,
+                        "Pipe length [m]": 330.57,
+                        "Surface_type": "street",
+                        "Total costs [EUR]": 240223.48,
+                        "Diameter [m]": 0.093,
+                        "Losses [W/m]": 35.16,
+                        "Losses [W]": 11622.841,
+                        "Capacity limit [MW]": "None"
+                    }
+                }
+            },
+            "1": {},
+            "3": {},
+            "5": {},
+            "4": {}
+        }
+    }
+}'
