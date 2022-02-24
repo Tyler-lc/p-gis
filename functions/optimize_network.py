@@ -1005,25 +1005,14 @@ def optimize_network(
             "Total_costs [EUR]",
         ],
     )
-    sums_ = pd.Series(
-        [
-            "Sum (no redundancy)",
-            result_df["Losses [W]"].sum(),
-            result_df["MW"].sum(),
-            result_df["Length"].sum(),
-            result_df["cost_total"].sum() + invest_pumps,
-        ]
-    )
-    # res_sources_sinks.loc[len(res_sources_sinks)] = sums_.values
-    sums = dict(zip(res_sources_sinks.columns.values[1:], sums_.values[1:]))
+
+    sums = {"losses_total": result_df["Losses [W]"].sum(), "installed_capacity": result_df["MW"].sum(), "length": result_df["Length"].sum(), "total_costs": (result_df["cost_total"].sum() + invest_pumps)}
 
     # make the calculations for TEO
     losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / (1000 * len(N_demand))
-    cost_in_kw = sums["Total_costs [EUR]"] / (sums["Installed capacity [MW]"] * 1000)
+    cost_in_kw = sums["total_costs"] / (sums["installed_capacity"] * 1000)
     # the output for TEO
     losses_cost_kw = {"losses_in_kw": losses_in_kw, "cost_in_kw": cost_in_kw}
-
-    res_sources_sinks = res_sources_sinks.to_dict("records")
 
     #######VISUAL RESULTS##################
 
@@ -1321,10 +1310,19 @@ def prepare_output_optnw(
 ):
 
     cols_rename = {
-        "Length": "Pipe length [m]",
-        "Diameter": "Diameter [m]",
-        "cost_total": "Total costs [EUR]",
-        "Capacity_limit": "Capacity limit [MW]",
+        "From/to": "from_to",
+        "Losses total [W]": "losses_total",
+        "Installed capacity [MW]": "installed_capacity",
+        'Length [m]': "length",
+        "Total_costs [EUR]": "total_costs",
+        "Total costs [EUR]": "total_costs",
+        "Pipe length [m]": "pipe_length",
+        "Diameter [m]": "diameter",
+        "Capacity limit [MW]": "capacity_limit",
+        "MW": "installed_capacity",
+        "Surface_type": "surface_type",
+        "Losses [W/m]": "losses_w_m",
+        "Losses [W]": "losses_w"
     }
 
     cols_to_drop = [
@@ -1340,10 +1338,23 @@ def prepare_output_optnw(
         "from_to",
     ]
 
+    # Preparing res_sources_sinks for Output
+    res_sources_sinks.rename(
+        columns=cols_rename,
+        inplace=True,
+        errors="ignore",
+    )
+    res_sources_sinks = res_sources_sinks.to_dict("records")
+
     # Preparing Network Solution for Output
     solution_nodes, solution_edges = ox.graph_to_gdfs(network_solution)
     solution_edges = solution_edges.drop(cols_to_drop, axis=1, errors="ignore")
     solution_nodes = solution_nodes.drop(["geometry"], axis=1, errors="ignore")
+    solution_edges.rename(
+        columns=cols_rename,
+        inplace=True,
+        errors="ignore",
+    )    
 
     # Preparing Potential Grid for Output
     potential_nodes, potential_edges = ox.graph_to_gdfs(potential_grid_area)
