@@ -1235,6 +1235,8 @@ def run_optimize_network(input_data):
 def prepare_input(input_data):
     nodes = input_data["nodes"]
     edges = input_data["edges"]
+    demand_list = input_data["demand_list"]
+    supply_list = input_data["supply_list"]
     n_demand_list = input_data["n_demand_list"]
     n_supply_list = input_data["n_supply_list"]
     water_den = input_data["water_den"]
@@ -1259,11 +1261,13 @@ def prepare_input(input_data):
     in_cap = input_data["in_cap"]
 
     n_supply_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
+        for v in filter(lambda supplier: supplier["id"] in supply_list, n_supply_list)
     }
 
     n_demand_dict = {
-        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
+        for v in filter(lambda demand: demand["id"] in demand_list, n_demand_list)
     }
 
     ex_cap = pd.DataFrame(in_cap)
