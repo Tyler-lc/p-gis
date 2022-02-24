@@ -51,12 +51,10 @@ def optimize_network(
     vc_pip: dict,
     vc_pip_ex: dict,
     invest_pumps: dict,
-    ex_cap:pd.DataFrame,
+    ex_cap: pd.DataFrame,
 ):
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
-
-    # TODO: Start of Refactoring
 
     ################################################################################
     ###########CONVERT GRAPH TO NX GRAPH FOR FURTHER PROCESSING#####################
@@ -72,7 +70,7 @@ def optimize_network(
     road_nw.graph["name"] = "generated_road_nw"
 
     nodes, edges = ox.graph_to_gdfs(road_nw)
-    road_nw_solution = road_nw.copy()  # TODO: Create NW From nodes and edges
+    road_nw_solution = road_nw.copy()
 
     ################################################################################
     ###########ADD EDGE ATTRIBUTES THAT SHOULD BE PART OF GRAPH ALREADY#############
@@ -1084,69 +1082,6 @@ def optimize_network(
     edges_solution  ###edges of solution network
     nodes_solution  ###nodes of solution network
 
-    # network = ox.gdfs_to_graph(nodes_solution, edges_solution)
-    # TODO: Removed Folium
-    # m = folium.Map(
-    #     location=[
-    #         list(n_demand_dict.values())[0]["coords"][0],
-    #         list(n_demand_dict.values())[0]["coords"][1],
-    #     ],
-    #     zoom_start=11,
-    #     control_scale=True,
-    # )  #####create basemap
-    # #####layer for whole routing area####
-    # style = {
-    #     "fillColor": "#00FFFFFF",
-    #     "color": "#00FFFFFF",
-    # }  ####create colour for layer
-    # whole_area = folium.features.GeoJson(
-    #     edges, name="area", style_function=lambda x: style, overlay=True
-    # )  ###create layer with whole road network
-    # path = folium.features.GeoJson(
-    #     edges_solution, name="path", overlay=True
-    # )  ###create layer with solution edges
-
-    # nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)]
-
-    # for i in range(0, len(nodes_to_map)):
-    #     sources = folium.Marker(
-    #         location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
-    #         icon=folium.Icon(color="red", icon="tint"),
-    #         popup="Source",
-    #     ).add_to(m)
-
-    # sinks = folium.features.GeoJson(
-    #     nodes_solution[nodes_solution["osmid"].isin(N_demand)],
-    #     name="sinks",
-    #     overlay=True,
-    #     tooltip="Sink",
-    # )
-
-    # path.add_to(m)  ###add layer to map
-    # whole_area.add_to(m)  ###add layer to map
-    # sinks.add_to(m)
-    # folium.LayerControl().add_to(m)  ###add layer control to map
-
-    # ####add labels
-    # folium.features.GeoJsonPopup(
-    #     fields=[
-    #         "from_to",
-    #         "MW",
-    #         "Diameter",
-    #         "Length",
-    #         "Surface_type",
-    #         "cost_total",
-    #         "Losses [W/m]",
-    #         "Losses [W]",
-    #         "Capacity_limit",
-    #     ],
-    #     labels=True,
-    # ).add_to(path)
-
-    # # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
-    # ####save map as html#####
-    # m.save("TEST.html")
-
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -1190,6 +1125,7 @@ def optimize_network(
             "Capacity_limit": "Capacity limit [MW]",
         },
         inplace=True,
+        errors="ignore",
     )
 
     edges.set_index(["u", "v", "key"], inplace=True)
@@ -1208,7 +1144,94 @@ def optimize_network(
 
     network_solution = road_nw_solution
 
-    nodes, edges = ox.graph_to_gdfs(network_solution)
+    selected_agents = (
+        N_supply + N_demand
+    )  # output to MM: list of sources and sinks exist in the solution
+
+    return (
+        res_sources_sinks,
+        sums,
+        losses_cost_kw,
+        network_solution,
+        potential_grid_area,
+        selected_agents,
+    )
+
+
+# TODO: Same structure as create_network
+def run_optimize_network(input_data):
+
+    input_data['platform'] # DATA FROM the platform
+    input_data['gis-module'] # DATA Mapped from gis-module
+    (...)
+
+
+    (
+        res_sources_sinks,
+        sums,
+        losses_cost_kw,
+        network_solution,
+        potential_grid_area,
+        selected_agents,
+    ) = optimize_network(
+        nodes=network_nodes,
+        edges=network_edges,
+        n_demand_dict=n_demand_dict,
+        n_supply_dict=n_supply_dict,
+        water_den=water_den,
+        factor_street_terrain=factor_street_terrain,
+        factor_street_overland=factor_street_overland,
+        heat_capacity=heat_capacity,
+        flow_temp=flow_temp,
+        return_temp=return_temp,
+        surface_losses_dict=surface_losses_json,
+        ground_temp=ground_temp,
+        ambient_temp=ambient_temp,
+        fc_dig_st=fc_dig_st,
+        vc_dig_st=vc_dig_st,
+        vc_dig_st_ex=vc_dig_st_ex,
+        fc_dig_tr=fc_dig_tr,
+        vc_dig_tr=vc_dig_tr,
+        vc_dig_tr_ex=vc_dig_tr_ex,
+        fc_pip=fc_pip,
+        vc_pip=vc_pip,
+        vc_pip_ex=vc_pip_ex,
+        invest_pumps=invest_pumps,
+        ex_cap=ex_cap,
+    )
+
+    return prepare_output_optnw(
+        res_sources_sinks=res_sources_sinks,
+        sums=sums,
+        losses_cost_kw=losses_cost_kw,
+        network_solution=network_solution,
+        potential_grid_area=potential_grid_area,
+        selected_agents=selected_agents,
+    )
+
+
+# TODO: same structure as create_network
+def prepare_input(input_data):
+    pass
+
+
+## Prepare Output Data to Wrapper
+def prepare_output_optnw(
+    res_sources_sinks,
+    sums,
+    losses_cost_kw,
+    network_solution,
+    potential_grid_area,
+    selected_agents,
+):
+
+    cols_rename = {
+        "Length": "Pipe length [m]",
+        "Diameter": "Diameter [m]",
+        "cost_total": "Total costs [EUR]",
+        "Capacity_limit": "Capacity limit [MW]",
+    }
+
     cols_to_drop = [
         "key_0",
         "length",
@@ -1221,80 +1244,24 @@ def optimize_network(
         "geometry",
         "from_to",
     ]
-    edges = edges.drop(cols_to_drop, axis=1)
-    nodes = nodes.drop(["geometry"], axis=1)
-    network_solution = ox.graph_from_gdfs(nodes, edges)
-    network_solution_nodes_json = nodes.to_dict("records")
-    network_solution_edges_json = edges.to_dict("records")
 
-    selected_agents = (
-        N_supply + N_demand
-    )  # output to MM: list of sources and sinks exist in the solution
+    # Preparing Network Solution for Output
+    solution_nodes, solution_edges = ox.graph_to_gdfs(network_solution)
+    solution_edges = solution_edges.drop(cols_to_drop, axis=1, errors="ignore")
+    solution_nodes = solution_nodes.drop(["geometry"], axis=1, errors="ignore")
 
-    return prepare_output_optnw(
-        res_sources_sinks,
-        sums,
-        losses_cost_kw,
-        network_solution,
-        network_solution_nodes_json,
-        network_solution_edges_json,
-        potential_grid_area,
-        selected_agents,
-    )
-
-    ## Utilities
-
-
-def remove_nonjson_optnw(output_data):
-
-    if isinstance(output_data, list):
-        for datum in output_data:
-            to_del = []
-            for i in datum.keys():
-                if hasattr(datum[i], "__dict__"):
-                    to_del.append(i)
-
-            for i in to_del:
-                del datum[i]
-    else:
-        to_del = []
-        for i in output_data.keys():
-            if hasattr(output_data[i], "__dict__"):
-                to_del.append(i)
-
-        for i in to_del:
-            del output_data[i]
-
-    return output_data
-
-
-## Prepare Output Data to Wrapper
-def prepare_output_optnw(
-    res_sources_sinks,
-    sums,
-    losses_cost_kw,
-    network_solution,
-    network_solution_nodes_json,
-    network_solution_edges_json,
-    potential_grid_area,
-    selected_agents,
-):
-
-    network_solution_json = jsonpickle.encode(network_solution.adj, unpicklable=False)
-    potential_grid_area_json = jsonpickle.encode(
-        potential_grid_area.adj, unpicklable=False
-    )
-
-    network_solution_nodes_clean = remove_nonjson_optnw(network_solution_nodes_json)
-    network_solution_edges_clean = remove_nonjson_optnw(network_solution_edges_json)
+    # Preparing Potential Grid for Output
+    potential_nodes, potential_edges = ox.graph_to_gdfs(potential_grid_area)
+    potential_edges = potential_edges.drop(cols_to_drop, axis=1, errors="ignore")
+    potential_nodes = potential_nodes.drop(["geometry"], axis=1, errors="ignore")
 
     return {
         "res_sources_sinks": res_sources_sinks,
-        "sums": sums,
+        "sums": sums,  # TODO: rename outputs
         "losses_cost_kw": losses_cost_kw,
-        "network_solution": network_solution_json,
-        "network_solution_nodes": network_solution_nodes_clean,
-        "network_solution_edges": network_solution_edges_clean,
-        "potential_grid_area": potential_grid_area_json,
+        "network_solution_nodes": solution_nodes.to_dict("records"),
+        "network_solution_edges": solution_edges.to_dict("records"),
+        "potential_edges": potential_edges.to_dict("records"),
+        "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
     }
