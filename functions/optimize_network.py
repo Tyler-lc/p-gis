@@ -1160,11 +1160,32 @@ def optimize_network(
 
 # TODO: Same structure as create_network
 def run_optimize_network(input_data):
-
-    input_data['platform'] # DATA FROM the platform
-    input_data['gis-module'] # DATA Mapped from gis-module
-    (...)
-
+    (
+        network_nodes,
+        network_edges,
+        n_supply_dict,
+        n_demand_dict,
+        water_den,
+        factor_street_terrain,
+        factor_street_overland,
+        heat_capacity,
+        flow_temp,
+        return_temp,
+        surface_losses_dict,
+        ground_temp,
+        ambient_temp,
+        fc_dig_st,
+        vc_dig_st,
+        vc_dig_st_ex,
+        fc_dig_tr,
+        vc_dig_tr,
+        vc_dig_tr_ex,
+        fc_pip,
+        vc_pip,
+        vc_pip_ex,
+        invest_pumps,
+        ex_cap,
+    ) = prepare_input(input_data)
 
     (
         res_sources_sinks,
@@ -1184,7 +1205,7 @@ def run_optimize_network(input_data):
         heat_capacity=heat_capacity,
         flow_temp=flow_temp,
         return_temp=return_temp,
-        surface_losses_dict=surface_losses_json,
+        surface_losses_dict=surface_losses_dict,
         ground_temp=ground_temp,
         ambient_temp=ambient_temp,
         fc_dig_st=fc_dig_st,
@@ -1257,7 +1278,7 @@ def prepare_input(input_data):
             ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
         )
 
-    return(
+    return (
         nodes,
         edges,
         n_supply_dict,
@@ -1281,8 +1302,9 @@ def prepare_input(input_data):
         vc_pip,
         vc_pip_ex,
         invest_pumps,
-        ex_cap
+        ex_cap,
     )
+
 
 ## Prepare Output Data to Wrapper
 def prepare_output_optnw(
