@@ -1361,9 +1361,12 @@ def prepare_output_optnw(
     potential_edges = potential_edges.drop(cols_to_drop, axis=1, errors="ignore")
     potential_nodes = potential_nodes.drop(["geometry"], axis=1, errors="ignore")
 
+    # Preparing Selected Agents for Output
+    selected_agents = list(map(str, selected_agents))
+
     return {
         "res_sources_sinks": res_sources_sinks,
-        "sums": sums,  # TODO: rename outputs
+        "sums": sums,
         "losses_cost_kw": losses_cost_kw,
         "network_solution_nodes": solution_nodes.to_dict("records"),
         "network_solution_edges": solution_edges.to_dict("records"),
