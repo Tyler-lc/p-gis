@@ -1212,8 +1212,77 @@ def run_optimize_network(input_data):
 
 # TODO: same structure as create_network
 def prepare_input(input_data):
-    pass
+    nodes = input_data["nodes"]
+    edges = input_data["edges"]
+    n_demand_list = input_data["n_demand_list"]
+    n_supply_list = input_data["n_supply_list"]
+    water_den = input_data["water_den"]
+    factor_street_terrain = input_data["factor_street_terrain"]
+    factor_street_overland = input_data["factor_street_overland"]
+    heat_capacity = input_data["heat_capacity"]
+    flow_temp = input_data["flow_temp"]
+    return_temp = input_data["return_temp"]
+    surface_losses_dict = input_data["surface_losses_dict"]
+    ground_temp = input_data["ground_temp"]
+    ambient_temp = input_data["ambient_temp"]
+    fc_dig_st = input_data["fc_dig_st"]
+    vc_dig_st = input_data["vc_dig_st"]
+    vc_dig_st_ex = input_data["vc_dig_st_ex"]
+    fc_dig_tr = input_data["fc_dig_tr"]
+    vc_dig_tr = input_data["vc_dig_tr"]
+    vc_dig_tr_ex = input_data["vc_dig_tr_ex"]
+    fc_pip = input_data["fc_pip"]
+    vc_pip = input_data["vc_pip"]
+    vc_pip_ex = input_data["vc_pip_ex"]
+    invest_pumps = input_data["invest_pumps"]
+    in_cap = input_data["in_cap"]
 
+    n_supply_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
+    }
+
+    n_demand_dict = {
+        v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
+    }
+
+    ex_cap = pd.DataFrame(in_cap)
+    # readinf ex_cap from json makes all column names str
+    # convert the datatype of columns names (only time steps) to int from str
+    ex_cap_cols = ex_cap.columns.values
+    ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
+    ex_cap.columns = ex_cap_cols
+
+    if len(ex_cap) != 0:
+        ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
+            ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
+        )
+
+    return(
+        nodes,
+        edges,
+        n_supply_dict,
+        n_demand_dict,
+        water_den,
+        factor_street_terrain,
+        factor_street_overland,
+        heat_capacity,
+        flow_temp,
+        return_temp,
+        surface_losses_dict,
+        ground_temp,
+        ambient_temp,
+        fc_dig_st,
+        vc_dig_st,
+        vc_dig_st_ex,
+        fc_dig_tr,
+        vc_dig_tr,
+        vc_dig_tr_ex,
+        fc_pip,
+        vc_pip,
+        vc_pip_ex,
+        invest_pumps,
+        ex_cap
+    )
 
 ## Prepare Output Data to Wrapper
 def prepare_output_optnw(
