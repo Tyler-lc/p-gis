@@ -22,7 +22,10 @@ from shapely.geometry import Polygon, Point
 import sklearn
 from networkx.readwrite import json_graph
 
+from ..utilities.kb import KB
+
 from ..utilities.create_ex_grid import create_ex_grid
+from ..utilities.integration import get_value
 
 ################################################
 ################Create Network  ################
@@ -341,7 +344,7 @@ def create_network(
     )
 
 
-def run_create_network(input_data):
+def run_create_network(input_data, KB: KB):
     (
         n_supply_list,
         n_demand_list,
@@ -349,7 +352,7 @@ def run_create_network(input_data):
         ex_cap,
         network_resolution,
         coords_list,
-    ) = prepare_input(input_data)
+    ) = prepare_input(input_data, KB)
 
     (road_nw, n_demand_dict, n_supply_dict) = create_network(
         n_supply_dict=n_supply_list,
@@ -368,12 +371,33 @@ def run_create_network(input_data):
 
 
 ## Prepare Input Data to Function
-def prepare_input(input_data):
-    n_supply_list = input_data["n_supply_list"]
-    n_demand_list = input_data["n_demand_list"]
-    ex_grid_data_json = input_data["ex_grid_data_json"]
-    in_cap = input_data["in_cap"]
-    network_resolution = input_data["network_resolution"]
+def prepare_input(input_data, KB: KB):
+    platform = input_data["platform"]
+    cf_module = input_data["cf-module"]
+    teo_module = input_data["teo-module"]
+
+    ## From the platform
+    ## - ex_grid
+    ## - network_resolution
+
+    ex_grid_data_json = get_value(platform, "ex_grid", {})
+    network_resolution = get_value(
+        platform, "network_resolution", KB.get("parameters_default.network_resolution")
+    )
+
+    ## From CF-Module
+    ## - n_supply_list
+    ## - n_demand_list
+
+    n_supply_list = get_value(cf_module, "n_supply_list", [])
+    n_demand_list = get_value(cf_module, "n_demand_list", [])
+
+    ## From TEO-Module
+    ## - ex_cap
+
+    in_cap = get_value(teo_module, "ex_cap", [])
+
+    ## BEGIN - Variable Transformation
 
     ex_grid = create_ex_grid(ex_grid_data_json)
 
@@ -392,8 +416,6 @@ def prepare_input(input_data):
             coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
 
     ex_cap = pd.DataFrame(in_cap)
-    # readinf ex_cap from json makes all column names str
-    # convert the datatype of columns names (only time steps) to int from str
     ex_cap_cols = ex_cap.columns.values
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
     ex_cap.columns = ex_cap_cols
