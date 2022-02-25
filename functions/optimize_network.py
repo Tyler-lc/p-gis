@@ -22,7 +22,7 @@ import json
 import gurobipy as gp
 
 from ..utilities.kb import KB
-
+from ..utilities.integration import get_value
 
 ################################################
 ################Optimize Network################
@@ -1229,32 +1229,45 @@ def run_optimize_network(input_data, KB: KB):
 
 # TODO: same structure as create_network
 def prepare_input(input_data, KB: KB):
-    nodes = input_data["nodes"]
-    edges = input_data["edges"]
-    demand_list = input_data["demand_list"]
-    supply_list = input_data["supply_list"]
-    n_demand_list = input_data["n_demand_list"]
-    n_supply_list = input_data["n_supply_list"]
-    water_den = input_data["water_den"]
-    factor_street_terrain = input_data["factor_street_terrain"]
-    factor_street_overland = input_data["factor_street_overland"]
-    heat_capacity = input_data["heat_capacity"]
-    flow_temp = input_data["flow_temp"]
-    return_temp = input_data["return_temp"]
-    surface_losses_dict = input_data["surface_losses_dict"]
-    ground_temp = input_data["ground_temp"]
-    ambient_temp = input_data["ambient_temp"]
-    fc_dig_st = input_data["fc_dig_st"]
-    vc_dig_st = input_data["vc_dig_st"]
-    vc_dig_st_ex = input_data["vc_dig_st_ex"]
-    fc_dig_tr = input_data["fc_dig_tr"]
-    vc_dig_tr = input_data["vc_dig_tr"]
-    vc_dig_tr_ex = input_data["vc_dig_tr_ex"]
-    fc_pip = input_data["fc_pip"]
-    vc_pip = input_data["vc_pip"]
-    vc_pip_ex = input_data["vc_pip_ex"]
-    invest_pumps = input_data["invest_pumps"]
-    in_cap = input_data["in_cap"]
+
+    platform = input_data["platform"]
+    gis_module = input_data["gis-module"]
+    cf_module = input_data["cf-module"]
+    teo_module = input_data["teo-module"]
+
+    # from GIS
+    nodes = get_value(gis_module, "nodes", [])
+    edges = get_value(gis_module, "edges", [])
+    demand_list = get_value(gis_module, "demand_list", [])
+    supply_list = get_value(gis_module, "supply_list", [])
+    
+    # from CF
+    n_supply_list = get_value(cf_module, "n_supply_list", [])
+    n_demand_list = get_value(cf_module, "n_demand_list", [])
+
+    # from TEO
+    in_cap = get_value(teo_module, "ex_cap", [])
+
+    # from PLATFORM
+    water_den = get_value[platform, "water_den", {}]
+    factor_street_terrain = get_value[platform, "factor_street_terrain", {}]
+    factor_street_overland = get_value[platform, "factor_street_overland", {}]
+    heat_capacity = get_value[platform, "heat_capacity", {}]
+    flow_temp = get_value[platform, "flow_temp", {}]
+    return_temp = get_value[platform, "return_temp", {}]
+    surface_losses_dict = get_value[platform, "surface_losses_dict", {}]
+    ground_temp = get_value[platform, "ground_temp", {}]
+    ambient_temp = get_value[platform, "ambient_temp", {}]
+    fc_dig_st = get_value[platform, "fc_dig_st", {}]
+    vc_dig_st = get_value[platform, "vc_dig_st", {}]
+    vc_dig_st_ex = get_value[platform, "vc_dig_st_ex", {}]
+    fc_dig_tr = get_value[platform, "fc_dig_tr", {}]
+    vc_dig_tr = get_value[platform, "vc_dig_tr", {}]
+    vc_dig_tr_ex = get_value[platform, "vc_dig_tr_ex", {}]
+    fc_pip = get_value[platform, "fc_pip", {}]
+    vc_pip = get_value[platform, "vc_pip", {}]
+    vc_pip_ex = get_value[platform, "vc_pip_ex", {}]
+    invest_pumps = get_value[platform, "invest_pumps", {}]
 
     n_supply_dict = {
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
