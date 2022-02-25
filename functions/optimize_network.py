@@ -1240,7 +1240,7 @@ def prepare_input(input_data, KB: KB):
     edges = get_value(gis_module, "edges", [])
     demand_list = get_value(gis_module, "demand_list", [])
     supply_list = get_value(gis_module, "supply_list", [])
-    
+
     # from CF
     n_supply_list = get_value(cf_module, "n_supply_list", [])
     n_demand_list = get_value(cf_module, "n_demand_list", [])
@@ -1249,25 +1249,51 @@ def prepare_input(input_data, KB: KB):
     in_cap = get_value(teo_module, "ex_cap", [])
 
     # from PLATFORM
-    water_den = get_value[platform, "water_den", {}]
-    factor_street_terrain = get_value[platform, "factor_street_terrain", {}]
-    factor_street_overland = get_value[platform, "factor_street_overland", {}]
-    heat_capacity = get_value[platform, "heat_capacity", {}]
-    flow_temp = get_value[platform, "flow_temp", {}]
-    return_temp = get_value[platform, "return_temp", {}]
-    surface_losses_dict = get_value[platform, "surface_losses_dict", {}]
-    ground_temp = get_value[platform, "ground_temp", {}]
-    ambient_temp = get_value[platform, "ambient_temp", {}]
-    fc_dig_st = get_value[platform, "fc_dig_st", {}]
-    vc_dig_st = get_value[platform, "vc_dig_st", {}]
-    vc_dig_st_ex = get_value[platform, "vc_dig_st_ex", {}]
-    fc_dig_tr = get_value[platform, "fc_dig_tr", {}]
-    vc_dig_tr = get_value[platform, "vc_dig_tr", {}]
-    vc_dig_tr_ex = get_value[platform, "vc_dig_tr_ex", {}]
-    fc_pip = get_value[platform, "fc_pip", {}]
-    vc_pip = get_value[platform, "vc_pip", {}]
-    vc_pip_ex = get_value[platform, "vc_pip_ex", {}]
-    invest_pumps = get_value[platform, "invest_pumps", {}]
+    water_den = get_value(platform, "water_den", KB.get("parameters_default.water_den"))
+    factor_street_terrain = get_value(
+        platform,
+        "factor_street_terrain",
+        KB.get("parameters_default.factor_street_terrain"),
+    )
+    factor_street_overland = get_value(
+        platform,
+        "factor_street_overland",
+        KB.get("parameters_default.factor_street_overland"),
+    )
+    heat_capacity = get_value(
+        platform, "heat_capacity", KB.get("parameters_default.heat_capacity")
+    )
+    flow_temp = get_value(platform, "flow_temp", KB.get("parameters_default.flow_temp"))
+    return_temp = get_value(
+        platform, "return_temp", KB.get("parameters_default.return_temp")
+    )
+    surface_losses_dict = get_value(
+        platform,
+        "surface_losses_dict",
+        KB.get("parameters_default.surface_losses_dict"),
+    )
+    ground_temp = get_value(
+        platform, "ground_temp", KB.get("parameters_default.ground_temp")
+    )
+    ambient_temp = get_value(
+        platform, "ambient_temp", KB.get("parameters_default.ambient_temp")
+    )
+    fc_dig_st = get_value(platform, "fc_dig_st", KB.get("parameters_default.fc_dig_st"))
+    vc_dig_st = get_value(platform, "vc_dig_st", KB.get("parameters_default.vc_dig_st"))
+    vc_dig_st_ex = get_value(
+        platform, "vc_dig_st_ex", KB.get("parameters_default.vc_dig_st_ex")
+    )
+    fc_dig_tr = get_value(platform, "fc_dig_tr", KB.get("parameters_default.fc_dig_tr"))
+    vc_dig_tr = get_value(platform, "vc_dig_tr", KB.get("parameters_default.vc_dig_tr"))
+    vc_dig_tr_ex = get_value(
+        platform, "vc_dig_tr_ex", KB.get("parameters_default.vc_dig_tr_ex")
+    )
+    fc_pip = get_value(platform, "fc_pip", KB.get("parameters_default.fc_pip"))
+    vc_pip = get_value(platform, "vc_pip", KB.get("parameters_default.vc_pip"))
+    vc_pip_ex = get_value(platform, "vc_pip_ex", KB.get("parameters_default.vc_pip_ex"))
+    invest_pumps = get_value(
+        platform, "invest_pumps", KB.get("parameters_default.invest_pumps")
+    )
 
     n_supply_dict = {
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
@@ -1280,8 +1306,6 @@ def prepare_input(input_data, KB: KB):
     }
 
     ex_cap = pd.DataFrame(in_cap)
-    # readinf ex_cap from json makes all column names str
-    # convert the datatype of columns names (only time steps) to int from str
     ex_cap_cols = ex_cap.columns.values
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
     ex_cap.columns = ex_cap_cols

@@ -440,7 +440,6 @@ def prepare_output(road_nw, n_demand_dict, n_supply_dict):
 
     nodes, edges = ox.graph_to_gdfs(road_nw)
     cols_to_drop = [
-        "osmid",
         "oneway",
         "name",
         "highway",
@@ -450,8 +449,9 @@ def prepare_output(road_nw, n_demand_dict, n_supply_dict):
         "service",
         "access",
         "geometry",
+        "street_count",
     ]
-    edges = edges.drop(cols_to_drop, axis=1, errors="ignore")
+    edges = edges.drop(cols_to_drop + ["osmid"], axis=1, errors="ignore")
     nodes = nodes.drop(cols_to_drop, axis=1, errors="ignore")
 
     return {
