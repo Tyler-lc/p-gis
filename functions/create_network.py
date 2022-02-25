@@ -334,28 +334,8 @@ def create_network(
     ################################################################################
     ####################DELETE ATTRIBUTES FROM EDGES NOT NEEDED#####################
 
-    nodes, edges = ox.graph_to_gdfs(road_nw)
-    cols_to_drop = [
-        "osmid",
-        "oneway",
-        "name",
-        "highway",
-        "maxspeed",
-        "lanes",
-        "junction",
-        "service",
-        "access",
-    ]
-    edges = edges.drop(edges.columns.intersection(cols_to_drop), axis=1)
-    road_nw = ox.graph_from_gdfs(nodes, edges)
-
-    # extract the nodes and edges from the graphs and convert them to GoeJSON
-    nodes_json = nodes.to_dict("records")
-    edges_json = edges.to_dict("records")
-
     return (
-        nodes_json,
-        edges_json,
+        road_nw,
         n_demand_dict,
         n_supply_dict,
     )
@@ -371,7 +351,7 @@ def run_create_network(input_data):
         coords_list,
     ) = prepare_input(input_data)
 
-    nodes, edges, n_demand_dict, n_supply_dict = create_network(
+    (road_nw, n_demand_dict, n_supply_dict) = create_network(
         n_supply_dict=n_supply_list,
         n_demand_dict=n_demand_list,
         ex_grid=ex_grid,
@@ -381,8 +361,7 @@ def run_create_network(input_data):
     )
 
     return prepare_output(
-        nodes=nodes,
-        edges=edges,
+        road_nw=road_nw,
         n_demand_dict=n_demand_dict,
         n_supply_dict=n_supply_dict,
     )
@@ -435,38 +414,27 @@ def prepare_input(input_data):
 
 
 ## Prepare Output Data to Wrapper
-def prepare_output(nodes, edges, n_demand_dict, n_supply_dict):
+def prepare_output(road_nw, n_demand_dict, n_supply_dict):
 
-    clean_nodes = remove_nonjson(nodes)
-    clean_edges = remove_nonjson(edges)
+    nodes, edges = ox.graph_to_gdfs(road_nw)
+    cols_to_drop = [
+        "osmid",
+        "oneway",
+        "name",
+        "highway",
+        "maxspeed",
+        "lanes",
+        "junction",
+        "service",
+        "access",
+        "geometry",
+    ]
+    edges = edges.drop(cols_to_drop, axis=1, errors="ignore")
+    nodes = nodes.drop(cols_to_drop, axis=1, errors="ignore")
 
     return {
-        "nodes": clean_nodes,
-        "edges": clean_edges,
+        "nodes": nodes.to_dict("records"),
+        "edges": edges.to_dict("records"),
         "demand_list": list(n_demand_dict.keys()),
         "supply_list": list(n_supply_dict.keys()),
     }
-
-
-## Utilities
-def remove_nonjson(output_data):
-
-    if isinstance(output_data, list):
-        for datum in output_data:
-            to_del = []
-            for i in datum.keys():
-                if hasattr(datum[i], "__dict__"):
-                    to_del.append(i)
-
-            for i in to_del:
-                del datum[i]
-    else:
-        to_del = []
-        for i in output_data.keys():
-            if hasattr(output_data[i], "__dict__"):
-                to_del.append(i)
-
-        for i in to_del:
-            del output_data[i]
-
-    return output_data
