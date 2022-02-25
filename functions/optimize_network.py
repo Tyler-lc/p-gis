@@ -21,6 +21,8 @@ import json
 
 import gurobipy as gp
 
+from ..utilities.kb import KB
+
 
 ################################################
 ################Optimize Network################
@@ -1006,7 +1008,12 @@ def optimize_network(
         ],
     )
 
-    sums = {"losses_total": result_df["Losses [W]"].sum(), "installed_capacity": result_df["MW"].sum(), "length": result_df["Length"].sum(), "total_costs": (result_df["cost_total"].sum() + invest_pumps)}
+    sums = {
+        "losses_total": result_df["Losses [W]"].sum(),
+        "installed_capacity": result_df["MW"].sum(),
+        "length": result_df["Length"].sum(),
+        "total_costs": (result_df["cost_total"].sum() + invest_pumps),
+    }
 
     # make the calculations for TEO
     losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / (1000 * len(N_demand))
@@ -1148,7 +1155,7 @@ def optimize_network(
 
 
 # TODO: Same structure as create_network
-def run_optimize_network(input_data):
+def run_optimize_network(input_data, KB: KB):
     (
         network_nodes,
         network_edges,
@@ -1174,7 +1181,7 @@ def run_optimize_network(input_data):
         vc_pip_ex,
         invest_pumps,
         ex_cap,
-    ) = prepare_input(input_data)
+    ) = prepare_input(input_data, KB)
 
     (
         res_sources_sinks,
@@ -1221,7 +1228,7 @@ def run_optimize_network(input_data):
 
 
 # TODO: same structure as create_network
-def prepare_input(input_data):
+def prepare_input(input_data, KB: KB):
     nodes = input_data["nodes"]
     edges = input_data["edges"]
     demand_list = input_data["demand_list"]
@@ -1313,7 +1320,7 @@ def prepare_output_optnw(
         "From/to": "from_to",
         "Losses total [W]": "losses_total",
         "Installed capacity [MW]": "installed_capacity",
-        'Length [m]': "length",
+        "Length [m]": "length",
         "Total_costs [EUR]": "total_costs",
         "Total costs [EUR]": "total_costs",
         "Pipe length [m]": "pipe_length",
@@ -1322,7 +1329,7 @@ def prepare_output_optnw(
         "MW": "installed_capacity",
         "Surface_type": "surface_type",
         "Losses [W/m]": "losses_w_m",
-        "Losses [W]": "losses_w"
+        "Losses [W]": "losses_w",
     }
 
     cols_to_drop = [
@@ -1354,7 +1361,7 @@ def prepare_output_optnw(
         columns=cols_rename,
         inplace=True,
         errors="ignore",
-    )    
+    )
 
     # Preparing Potential Grid for Output
     potential_nodes, potential_edges = ox.graph_to_gdfs(potential_grid_area)
