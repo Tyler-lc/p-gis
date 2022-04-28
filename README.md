@@ -22,7 +22,10 @@ The "create_network" function serves as the first step in the GIS module. It rec
 
 The "optimize_network" function is the second step of the GIS module. It calculates a thermal network solution and related thermal losses and investment costs.
 
-## Module Requirement
+The general model architecture is given in below:
+![image](https://user-images.githubusercontent.com/98012853/165799218-3486110b-2010-4b05-b859-74f4dacd6624.png)
+
+## Module Requirements
 The integrated version of the GIS module has following dependencies:
 -	python = 3.9
 -	osmnx = 1.1.2
