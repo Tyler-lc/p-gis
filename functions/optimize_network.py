@@ -24,6 +24,14 @@ import gurobipy as gp
 from ..utilities.kb import KB
 from ..utilities.integration import get_value
 
+from pydantic import ValidationError
+from error_handling.error_hand_opt_netw_gis import Gisdata
+from error_handling.error_hand_opt_netw_platform import PlatformData
+from error_handling.error_hand_cf import CFData
+from error_handling.error_hand_teo import TEOData, TEOData2
+from error_handling.cases.exceptions.module_validation_exception import ModuleValidationException
+from error_handling.cases.exceptions.module_runtime_exception import ModuleRuntimeException
+
 ################################################
 ################Optimize Network################
 ################################################
@@ -327,7 +335,13 @@ def optimize_network(
     ###########SOLVE MODEL############################################
     # opt.options[
     #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
-    results = opt.solve(model, tee=True)
+    
+    ## Error handling
+    try:
+        results = opt.solve(model, tee=True)
+    except Exception as e4:
+        raise ModuleValidationException(code=2.5, msg="Optimization is infeasible!", error=e4)
+    
     # model.result.expr()
 
     ###########GET RESULTS############################################
@@ -617,7 +631,13 @@ def optimize_network(
                 ),
                 sense=minimize,
             )
-            result_nw = opt.solve(model_nw, tee=True)
+
+            ## Error handling
+            try:
+                result_nw = opt.solve(model_nw, tee=True)
+            except Exception as e5:
+                raise ModuleValidationException(code=2.6, msg="Optimization is infeasible!", error=e5)
+                    
 
             ###################################################################
             ######################GET RESULTS##################################
@@ -1234,6 +1254,28 @@ def prepare_input(input_data, KB: KB):
     gis_module = input_data["gis-module"]
     cf_module = input_data["cf-module"]
     teo_module = input_data["teo-module"]
+
+    ## Error Handling
+    try:
+        Gisdata(**gis_module)
+    except ValidationError as e0:
+        raise ModuleValidationException(code=2.1, msg="Problem with Gisdata", error=e0)
+
+    try:
+        PlatformData(**platform)
+    except ValidationError as e1:
+        raise ModuleValidationException(code=2.2, msg="Problem with PlatformData", error=e1)
+
+    try:
+        CFData(**cf_module)
+    except ValidationError as e2:
+        raise ModuleValidationException(code=2.3, msg="Problem with CFData", error=e2)
+
+    # TODO: There is a problem with TEO error handling. Consult David about it
+    # try:
+    #     TEOData(**teo_module)
+    # except ValidationError as e3:
+    #     raise ModuleValidationException(code=2.4, msg="Problem with TEOData", error=e3)     
 
     # from GIS
     nodes = get_value(gis_module, "nodes", [])
