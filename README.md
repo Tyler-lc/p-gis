@@ -23,7 +23,7 @@ The "create_network" function serves as the first step in the GIS module. It rec
 The "optimize_network" function is the second step of the GIS module. It calculates a thermal network solution and related thermal losses and investment costs.
 
 The general model architecture is given in below:
-![image](https://user-images.githubusercontent.com/98012853/165799218-3486110b-2010-4b05-b859-74f4dacd6624.png)
+![GitHub Light][image](https://user-images.githubusercontent.com/98012853/165799218-3486110b-2010-4b05-b859-74f4dacd6624.png#gh-light-mode-only)
 
 ## Module Requirements
 The integrated version of the GIS module has following dependencies:
@@ -49,7 +49,7 @@ The optimization models are modeled with PYOMO and solved with the GUROBI solver
 
 ## Inputs and Outputs
 The general input and output structure of the GIS module is given in below:
-![image](https://user-images.githubusercontent.com/98012853/165799907-19c696ee-67e0-491d-a89e-9dfe957fc62c.png)
+![GitHub Light][image](https://user-images.githubusercontent.com/98012853/165799907-19c696ee-67e0-491d-a89e-9dfe957fc62c.png#gh-light-mode-only)
 
 Under the “Function” column, it is indicated which function is using the input. It is also indicated if the input is mandatory or not. Please note that all mandatory inputs except for “Project Area” have a default value stored in the Knowledge Base. In other words, if the user does not have enough information to set a value for those variables or basically wants to use default variables, he/she has the option not to give input. However, the user must provide the “Project Area” input by choosing it via the platform.
 
@@ -79,7 +79,7 @@ The inputs that are expected from the user, their labels, and descriptions of th
 | optimize_network 	| TRUE 	| Cost Factor Street vs. Overland 	| Determines how   much cheaper it is to place 1 m of the pipe over the ground than putting it   into the street. Expressed in decimals: 0.4 means it is 40% cheaper. 	| Decimals 	|
 
 Also, note that the unit digging and piping costs are calculated in the following format:
-<img src="https://render.githubusercontent.com/render/math?math=Unit Digging/Piping\ Costs[EUR/m] = fixed cost + [(diameter)(variable cost)]^{exponent}">
+[GitHub Light]<img src="https://render.githubusercontent.com/render/math?math=Unit Digging/Piping\ Costs[EUR/m] = fixed cost + [(diameter)(variable cost)]^{exponent}#gh-light-mode-only">
 
 Therefore, all the inputs named as a fixed cost in table above correspond to the fixed cost in the formula above. Similarly, inputs named as a variable cost correspond to the variable cost in the formula above. Finally, the inputs named as the exponent correspond to the exponent in the formula above. The model calculates the diameter, so it is not user input. If a pipe is an overland pipe, the model automatically assigns a digging cost of zero to it.
 
