@@ -79,8 +79,7 @@ The inputs that are expected from the user, their labels, and descriptions of th
 | optimize_network 	| TRUE 	| Cost Factor Street vs. Overland 	| Determines how   much cheaper it is to place 1 m of the pipe over the ground than putting it   into the street. Expressed in decimals: 0.4 means it is 40% cheaper. 	| Decimals 	|
 
 Also, note that the unit digging and piping costs are calculated in the following format:
-<img src="https://render.githubusercontent.com/render/math?math=Unit Digging/Piping Costs[EUR/m] = fixed cost + [(diameter)(variable cost)]^exponent">
-Unit Digging/Piping Costs[EUR/m]  = fixed cost+〖[(diameter)(variable cost)]〗^exponent.
+<img src="https://render.githubusercontent.com/render/math?math=Unit Digging/Piping\ Costs[EUR/m] = fixed cost + [(diameter)(variable cost)]^{exponent}">
 Therefore, all the inputs named as a fixed cost in table above correspond to the fixed cost in the formula above. Similarly, inputs named as a variable cost correspond to the variable cost in the formula above. Finally, the inputs named as the exponent correspond to the exponent in the formula above. The model calculates the diameter, so it is not user input. If a pipe is an overland pipe, the model automatically assigns a digging cost of zero to it.
 
 The outputs of the GIS Module are
