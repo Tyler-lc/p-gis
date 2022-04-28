@@ -51,6 +51,8 @@ The optimization models are modeled with PYOMO and solved with the GUROBI solver
 The general input and output structure of the GIS module is given in below:
 ![image](https://user-images.githubusercontent.com/98012853/165799907-19c696ee-67e0-491d-a89e-9dfe957fc62c.png)
 
+Under the “Function” column, it is indicated which function is using the input. It is also indicated if the input is mandatory or not. Please note that all mandatory inputs except for “Project Area” have a default value stored in the Knowledge Base. In other words, if the user does not have enough information to set a value for those variables or basically wants to use default variables, he/she has the option not to give input. However, the user must provide the “Project Area” input by choosing it via the platform.
+
 The inputs that are expected from the user, their labels, and descriptions of the inputs are given below:
 | **Function** 	| **Mandatory** 	| **Label** 	| **Description** 	| **Unit** 	|
 |:---:	|:---:	|:---:	|:---:	|:---:	|
@@ -75,3 +77,14 @@ The inputs that are expected from the user, their labels, and descriptions of th
 | optimize_network 	| TRUE 	| Exponent Piping 	| The exponent of   the piping cost. Set to 1.3 by default. 	| - 	|
 | optimize_network 	| TRUE 	| Cost Factor Street vs. Terrain 	| Determines how   much cheaper it is to lay 1 m of pipe into a terrain than a street. Expressed   in decimals: 0.1 means it is 10% cheaper. 	| Decimals 	|
 | optimize_network 	| TRUE 	| Cost Factor Street vs. Overland 	| Determines how   much cheaper it is to place 1 m of the pipe over the ground than putting it   into the street. Expressed in decimals: 0.4 means it is 40% cheaper. 	| Decimals 	|
+
+Also, note that the unit digging and piping costs are calculated in the following format:
+Unit Digging/Piping Costs[EUR/m]  = fixed cost+〖[(diameter)(variable cost)]〗^exponent.
+Therefore, all the inputs named as a fixed cost in table above correspond to the fixed cost in the formula above. Similarly, inputs named as a variable cost correspond to the variable cost in the formula above. Finally, the inputs named as the exponent correspond to the exponent in the formula above. The model calculates the diameter, so it is not user input. If a pipe is an overland pipe, the model automatically assigns a digging cost of zero to it.
+
+The outputs of the GIS Module are
+-	the network solution visualized on Open Street Map,
+-	the network losses,
+-	the investment costs.
+
+The GIS module also outputs the potential grid area independent of the network solution. This potential grid area shows all the possible routes for the pipes on OSM.
