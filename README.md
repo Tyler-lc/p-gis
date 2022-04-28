@@ -80,6 +80,7 @@ The inputs that are expected from the user, their labels, and descriptions of th
 
 Also, note that the unit digging and piping costs are calculated in the following format:
 <img src="https://render.githubusercontent.com/render/math?math=Unit Digging/Piping\ Costs[EUR/m] = fixed cost + [(diameter)(variable cost)]^{exponent}">
+
 Therefore, all the inputs named as a fixed cost in table above correspond to the fixed cost in the formula above. Similarly, inputs named as a variable cost correspond to the variable cost in the formula above. Finally, the inputs named as the exponent correspond to the exponent in the formula above. The model calculates the diameter, so it is not user input. If a pipe is an overland pipe, the model automatically assigns a digging cost of zero to it.
 
 The outputs of the GIS Module are
@@ -88,3 +89,6 @@ The outputs of the GIS Module are
 -	the investment costs.
 
 The GIS module also outputs the potential grid area independent of the network solution. This potential grid area shows all the possible routes for the pipes on OSM.
+
+## Acknowledgments
+The EMB3RS project has received funding from the European Union’s Horizon 2020 research and innovation program under grant agreement No 847121. This publication reflects only the views of its authors, and the European Commission cannot be held responsible for its content.
