@@ -3,6 +3,7 @@ from typing import List
 
 class PlatformData(BaseModel):
     network_resolution: StrictStr
+    polygon: List
 
     @validator('network_resolution')
     def check_network_resolution(cls, v):
@@ -16,10 +17,9 @@ class PlatformData(BaseModel):
     def check_ex_grid_data(cls, v):
         "ex_grid data check"
 
-    @validator('project_area', check_fields=False)
+    @validator('polygon', check_fields=False)
     #TODO: Add validation for project area after David pushes the code
-    def check_project_area(cls, v):
-        "project_area check"
-    
-
- 
+    def check_polygon(cls, v):
+        #polygon = [[x,y], [x,y], [x,y], [x,y]]
+        if not len(v) == 4:
+            raise ValueError("Length of polygon must be 4!")

@@ -7,10 +7,6 @@
 ################Packages to load################
 ################################################
 
-from ctypes import Union
-from typing import Dict
-from black import out
-import jsonpickle
 import osmnx as ox
 import networkx as nx
 from osmnx.distance import euclidean_dist_vec
@@ -20,7 +16,6 @@ from pyomo.opt import *
 import haversine as hs
 from shapely.geometry import Polygon, Point
 import sklearn
-from networkx.readwrite import json_graph
 
 from ..utilities.kb import KB
 
@@ -393,11 +388,11 @@ def prepare_input(input_data, KB: KB):
     except Exception as e1:
         raise ModuleValidationException(code=1.2, msg="Problem with CFData", error=e1)
 
-    # TODO: There is a problem with TEO error handling. Consult David about it
-    # try:
-    #     TEOData(**teo_module)
-    # except ValidationError as e2:
-    #     raise ModuleValidationException(code=1.3, msg="Problem with TEOData", error=e2)   
+    try:
+        TEOData(**teo_module)
+        TEOData2(**teo_module)
+    except ValidationError as e2:
+        raise ModuleValidationException(code=1.3, msg="Problem with TEOData", error=e2)   
 
 
     ## From the platform
@@ -434,6 +429,7 @@ def prepare_input(input_data, KB: KB):
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
     }
 
+    #polygon = [[x,y], [x,y], [x,y], [x,y]]
     coords_list = map(lambda x :  Point(x[0], x[1]), polygon)
 
     ex_cap = pd.DataFrame(in_cap)

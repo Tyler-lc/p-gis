@@ -340,7 +340,7 @@ def optimize_network(
     try:
         results = opt.solve(model, tee=True)
     except Exception as e4:
-        raise ModuleValidationException(code=2.5, msg="Optimization is infeasible!", error=e4)
+        raise ModuleRuntimeException(code=2.5, msg="Optimization is infeasible!", error=e4)
     
     # model.result.expr()
 
@@ -636,7 +636,7 @@ def optimize_network(
             try:
                 result_nw = opt.solve(model_nw, tee=True)
             except Exception as e5:
-                raise ModuleValidationException(code=2.6, msg="Optimization is infeasible!", error=e5)
+                raise ModuleRuntimeException(code=2.6, msg="Optimization is infeasible!", error=e5)
                     
 
             ###################################################################
@@ -1174,7 +1174,6 @@ def optimize_network(
     )
 
 
-# TODO: Same structure as create_network
 def run_optimize_network(input_data, KB: KB):
     (
         network_nodes,
@@ -1247,7 +1246,6 @@ def run_optimize_network(input_data, KB: KB):
     )
 
 
-# TODO: same structure as create_network
 def prepare_input(input_data, KB: KB):
 
     platform = input_data["platform"]
@@ -1271,11 +1269,11 @@ def prepare_input(input_data, KB: KB):
     except ValidationError as e2:
         raise ModuleValidationException(code=2.3, msg="Problem with CFData", error=e2)
 
-    # TODO: There is a problem with TEO error handling. Consult David about it
-    # try:
-    #     TEOData(**teo_module)
-    # except ValidationError as e3:
-    #     raise ModuleValidationException(code=2.4, msg="Problem with TEOData", error=e3)     
+    try:
+        TEOData(**teo_module)
+        TEOData2(**teo_module)
+    except ValidationError as e3:
+        raise ModuleValidationException(code=2.4, msg="Problem with TEOData", error=e3)     
 
     # from GIS
     nodes = get_value(gis_module, "nodes", [])

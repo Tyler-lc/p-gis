@@ -7,7 +7,20 @@ class in_cap(BaseModel):
     number: StrictInt
 
 class TEOData(BaseModel):
-    ex_cap_json: List[in_cap]
+    ex_cap: List[in_cap]
 
 class TEOData2(BaseModel):
-    ex_cap_json: List[Dict]
+    ex_cap: list
+    
+    @validator('ex_cap')
+    def validateExCapStruct(cls, v):
+        # print(v)
+        for item in v:
+            col_name = list(item)
+            if (
+                not (col_name[0] == 'source_sink') or
+                not (col_name[1] == 'classification_type') or
+                not (col_name[2] == 'number')
+            ):
+                raise ValueError(
+                    "Structure of Ex Cap is Not Correct e.g. : ['source_sink', 'classification_type', 'number', '<timestamps>' (...)")
