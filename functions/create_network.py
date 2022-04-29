@@ -409,6 +409,7 @@ def prepare_input(input_data, KB: KB):
         platform, "network_resolution", KB.get("parameters_default.network_resolution")
     )
 
+    polygon = get_value(platform, "polygon", [])
     ## From CF-Module
     ## - n_supply_list
     ## - n_demand_list
@@ -433,11 +434,7 @@ def prepare_input(input_data, KB: KB):
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
     }
 
-    coords_list = []
-    for v in n_supply_list:
-        for v1 in n_demand_list:
-            coords_list.append(Point([v["coords"][1], v["coords"][0]]))
-            coords_list.append(Point([v1["coords"][1], v1["coords"][0]]))
+    coords_list = map(lambda x :  Point(x[0], x[1]), polygon)
 
     ex_cap = pd.DataFrame(in_cap)
     ex_cap_cols = ex_cap.columns.values
