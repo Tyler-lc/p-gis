@@ -28,10 +28,10 @@ from ..utilities.create_ex_grid import create_ex_grid
 from ..utilities.integration import get_value
 
 from pydantic import ValidationError
-from error_handling.error_hand_create_netw_platform import PlatformData
-from error_handling.error_hand_cf import CFData
-from error_handling.error_hand_teo import TEOData, TEOData2
-from error_handling.cases.exceptions.module_validation_exception import ModuleValidationException
+from ..error_handling.error_hand_create_netw_platform import PlatformData
+from ..error_handling.error_hand_cf import CFData
+from ..error_handling.error_hand_teo import TEOData, TEOData2
+from ..error_handling.module_validation_exception import ModuleValidationException
 
 ################################################
 ################Create Network  ################
@@ -390,7 +390,7 @@ def prepare_input(input_data, KB: KB):
 
     try:
         CFData(**cf_module)
-    except ValidationError as e1:
+    except Exception as e1:
         raise ModuleValidationException(code=1.2, msg="Problem with CFData", error=e1)
 
     # TODO: There is a problem with TEO error handling. Consult David about it

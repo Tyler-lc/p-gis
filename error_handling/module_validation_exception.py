@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from pydantic import ValidationError
 
-from cases.exceptions.module_exception import ModuleException
+from .module_exception import ModuleException
 
 
 @dataclass
