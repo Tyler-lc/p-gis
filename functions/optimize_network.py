@@ -957,10 +957,10 @@ def optimize_network(
     for i in range(0, len(result_df)):
         if result_df["Surface_pipe"][i] == 1:
             index_dia = (
-                surface_losses_df["DN"].sub(result_df["Diameter"][i]).abs().idxmin()
+                surface_losses_df["dn"].sub(result_df["Diameter"][i]).abs().idxmin()
             )
             loss_list.append(
-                surface_losses_df["Overland losses in W/mK"][index_dia]
+                surface_losses_df["overland_losses"][index_dia]
                 * abs((((flow_temp + return_temp) / 2) - ambient_temp))
             )
         else:

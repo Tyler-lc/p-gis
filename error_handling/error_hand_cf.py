@@ -10,12 +10,12 @@ class CFData(BaseModel):
     n_supply_list: List[supp_dem_dicts]
     n_demand_list: List[supp_dem_dicts]
 
-    @validator("n_supply_list")
+    @validator("n_supply_list", allow_reuse=True)
     def check_n_supply_list(cls, v):
         if len(v) < 1:
             raise ValueError("There are no sources! Please be sure to choose at least one source.")
     
-    @validator("n_demand_list")
+    @validator("n_demand_list", allow_reuse=True)
     def check_n_supply_list(cls, v):
         if len(v) < 1:
             raise ValueError("There are no sinks! Please be sure to choose at least one sink.")
