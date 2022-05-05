@@ -418,8 +418,10 @@ def prepare_input(input_data, KB: KB):
     in_cap = get_value(teo_module, "ex_cap", [])
 
     ## BEGIN - Variable Transformation
-
-    ex_grid = create_ex_grid(ex_grid_data_json)
+    if not ex_grid_data_json == []:
+        ex_grid = create_ex_grid(ex_grid_data_json)
+    else:
+        ex_grid = ex_grid_data_json
 
     n_supply_dict = {
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list

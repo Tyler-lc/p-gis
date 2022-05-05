@@ -337,10 +337,9 @@ def optimize_network(
     #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
     
     ## Error handling
-    try:
-        results = opt.solve(model, tee=True)
-    except Exception as e4:
-        raise ModuleRuntimeException(code=2.5, msg="Optimization is infeasible!", error=e4)
+    results = opt.solve(model, tee=True)
+    if results.solver.termination_condition == TerminationCondition.infeasible:
+        raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
     
     # model.result.expr()
 
@@ -486,7 +485,11 @@ def optimize_network(
             ),
             sense=minimize,
         )
+        
+        ## Error handling
         result_nw = opt.solve(model_nw, tee=True)
+        if result_nw.solver.termination_condition == TerminationCondition.infeasible:
+            raise ModuleRuntimeException(code=2.6, msg="Thermal capacity optimization without TEO is infeasible!")
 
         ###################################################################
         ######################GET RESULTS##################################
@@ -633,12 +636,10 @@ def optimize_network(
             )
 
             ## Error handling
-            try:
-                result_nw = opt.solve(model_nw, tee=True)
-            except Exception as e5:
-                raise ModuleRuntimeException(code=2.6, msg="Optimization is infeasible!", error=e5)
+            result_nw = opt.solve(model_nw, tee=True)
+            if result_nw.solver.termination_condition == TerminationCondition.infeasible:
+                raise ModuleRuntimeException(code=2.7, msg="Thermal capacity optimization with TEO is infeasible!")
                     
-
             ###################################################################
             ######################GET RESULTS##################################
 
