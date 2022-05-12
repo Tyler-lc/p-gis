@@ -408,9 +408,14 @@ def prepare_input(input_data, KB: KB):
     ## From CF-Module
     ## - n_supply_list
     ## - n_demand_list
+    ## - grid_specific
 
     n_supply_list = get_value(cf_module, "n_supply_list", [])
     n_demand_list = get_value(cf_module, "n_demand_list", [])
+    
+    # get the grid specific source from the CF and add it to supply list 
+    n_grid_specific = get_value(cf_module, "n_grid_specific", [])
+    n_supply_list.append(n_grid_specific)
 
     ## From TEO-Module
     ## - ex_cap
@@ -432,7 +437,9 @@ def prepare_input(input_data, KB: KB):
     }
 
     #polygon = [[x,y], [x,y], [x,y], [x,y]]
-    coords_list = map(lambda x :  Point(x[0], x[1]), polygon)
+    #coords_list = map(lambda x :  Point(x[0], x[1]), polygon)
+    #NOTE: for testing
+    coords_list = polygon
 
     ex_cap = pd.DataFrame(in_cap)
     ex_cap_cols = ex_cap.columns.values
