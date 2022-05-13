@@ -408,7 +408,7 @@ def optimize_network(
         data_py = data_py[
             data_py["Nodes"].isin(list({k[0] for k, v in result_graph.items()}))
         ]
-        N = list(data_py.index)
+        N = list(data_py.index) # list of nodes existing in the solution
 
         opt = solvers.SolverFactory("gurobi_direct")
         model_nw = ConcreteModel()
@@ -426,7 +426,7 @@ def optimize_network(
 
         model_nw.flow = Var(
             model_nw.edge_set, bounds=(0, 500)
-        )  ###max set to thermal capacity of 500 MW
+        )  ###real thermal flow on an edge, max thermal capacity set to 500 MW
         model_nw.cap_add = Var(
             model_nw.edge_set, bounds=(0, 500)
         )  ###additional capacity required if bottleneck
@@ -436,16 +436,16 @@ def optimize_network(
 
         model_nw.node_demand = Param(
             model_nw.node_set, initialize=data_py["cap_dem"].to_dict()
-        )
+        )# demand capacities of nodes
         model_nw.node_supply = Param(
             model_nw.node_set, initialize=data_py["cap_sup"].to_dict()
-        )
+        )# supply capacities of nodes
         model_nw.edge_capacities = Param(
             model_nw.edge_set, initialize=road_nw_ex_grid["MW"].to_dict()
-        )
+        )# thermal capacity of edge
         model_nw.edge_length = Param(
             model_nw.edge_set, initialize=road_nw_ex_grid[0].to_dict()
-        )
+        )# length of edge
 
         ###################################################################
         ######################CONSTRAINTS##################################
