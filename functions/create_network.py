@@ -377,7 +377,7 @@ def prepare_input(input_data, KB: KB):
     cf_module = input_data["cf-module"]
     teo_module = input_data["teo-module"]
 
-    ## Error Handling
+    # Error Handling
     try:
         PlatformData(**platform)
     except ValidationError as e0:
@@ -445,9 +445,7 @@ def prepare_input(input_data, KB: KB):
     }
 
     #polygon = [[x,y], [x,y], [x,y], [x,y]]
-    #coords_list = map(lambda x :  Point(x[0], x[1]), polygon)
-    #NOTE: for testing
-    coords_list = polygon
+    coords_list = [(i[1], i[0]) for i in polygon]
 
     ex_cap = pd.DataFrame(in_cap)
     ex_cap_cols = ex_cap.columns.values
