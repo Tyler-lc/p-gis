@@ -21,6 +21,8 @@ import json
 
 import gurobipy as gp
 
+from jinja2 import Environment, FileSystemLoader #for creating html report
+
 from ..utilities.kb import KB
 from ..utilities.integration import get_value
 
@@ -1105,6 +1107,38 @@ def optimize_network(
     edges_solution  ###edges of solution network
     nodes_solution  ###nodes of solution network
 
+    m = folium.Map(
+    location=[list(n_demand_dict.values())[0]["coords"][0], list(n_demand_dict.values())[0]["coords"][1]],
+    zoom_start=11, control_scale=True)  #####create basemap
+    #####layer for whole routing area####
+    style = {'fillColor': '#00FFFFFF', 'color': '#00FFFFFF'}  ####create colour for layer
+    whole_area = folium.features.GeoJson(edges, name="area", style_function=lambda x: style,
+                                         overlay=True)  ###create layer with whole road network
+    path = folium.features.GeoJson(edges_solution, name="path", overlay=True)  ###create layer with solution edges
+
+    nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_index(drop=True)
+
+    for i in range(0, len(nodes_to_map)):
+        sources = folium.Marker(location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
+                                icon=folium.Icon(color='red', icon="tint"), popup="Source").add_to(m)
+
+    sinks = folium.features.GeoJson(nodes_solution[nodes_solution["osmid"].isin(N_demand)], name="sinks",
+                                    overlay=True, tooltip="Sink")
+
+    path.add_to(m)  ###add layer to map
+    whole_area.add_to(m)  ###add layer to map
+    sinks.add_to(m)
+    folium.LayerControl().add_to(m)###add layer control to map
+
+    ####add labels
+    folium.features.GeoJsonPopup(
+        fields=['from_to', "MW", "Diameter", "Length", "Surface_type", "cost_total", 'Losses [W/m]', 'Losses [W]','Capacity_limit'],
+        labels=True).add_to(path)
+
+    # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
+    ####save map as html#####
+    m.save("TEST.html")
+
     ##############################################################################################
     ##############################################################################################
     ##############################################################################################
@@ -1429,6 +1463,8 @@ def prepare_output_optnw(
         "from_to",
     ]
 
+    res_sources_sinks_df = res_sources_sinks.copy()
+
     # Preparing res_sources_sinks for Output
     res_sources_sinks.rename(
         columns=cols_rename,
@@ -1484,6 +1520,28 @@ def prepare_output_optnw(
 
     # Preparing Selected Agents for Output
     selected_agents = list(map(str, selected_agents))
+
+    # Reporting the results
+
+    ## Convert tables to html
+    res_sources_sinks_html  =  res_sources_sinks_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
+    res_sources_sinks_table = res_sources_sinks_html.replace('<tr>', '<tr align="center">')
+
+    sums_df = pd.DataFrame.from_dict([sums])
+    sums_html = sums_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
+    sums_table = sums_html.replace('<tr>', '<tr align="center">')
+
+    env = Environment(
+    loader=FileSystemLoader('asset'),
+    autoescape=False
+    )
+
+    template = env.get_template('report_template.html')
+    template_content = template.render(plot=[], streams=[], agg_table = sums_table, detailed_table = res_sources_sinks_table)
+
+    f = open("report.html", "w")
+    f.write(template_content)
+    f.close()
 
     return {
         "res_sources_sinks": res_sources_sinks,
