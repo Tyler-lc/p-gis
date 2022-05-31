@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emb3rs - Test Report</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"
+    integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body class="container pt-5">
+  <img src="https://www.emb3rs.eu/wp-content/uploads/2019/12/EMB3Rs_horizontal-Logo.png" class="img">
+  <!-- Change after this -->
+  <h1>GIS Module Report</h1>
+
+  <h1>1. Aggregated Results</h1>
+  <p>
+    The aggregated results for the network are available in this section.
+    The table below shows the total values for the whole network.
+    Please note that a pipe can be used to connect multiple sources and sinks.
+    The pipes used for multiple sources and sinks are counted once to prevent redundancy.
+    Please see the next section for the detailed results.
+  </p>
+
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="card-header" id="headingOne">
+        <h2 class="mb-0">
+          <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            Table Info
+          </button>
+        </h2>
+      </div>
+  
+      <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div class="card-body">
+          <ul>
+            <li>Total Network Length: sum of the lengths of the pipelines used in the grid.</li>
+            <li>Total Network Cost: sum of the digging costs (excluding surface pipes), piping costs, and pump cost (if defined by the user) for all pipes in the solution.</li>
+            <li>Total Network Losses: sum of the thermal losses of the pipelines used in the grid.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    {{agg_table}}
+  </div>
+
+  <h1>2. Detailed Results</h1>
+  <p>
+    The pipeline-specific results are available in this section.
+    The pipelines displayed in the table below are a collection of the pipes connecting a source and sink.
+    As explained in the previous section, it is possible for a pipe to be used to connect multiple sources and sinks.
+    Therefore, the sum of the values given in the table below is not equal to the total for the whole network.
+  </p>
+
+  <div class="accordion" id="accordionExample">
+    <div class="card">
+      <div class="card-header" id="headingOne">
+        <h2 class="mb-0">
+          <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+            Table Info
+          </button>
+        </h2>
+      </div>
+  
+      <div id="collapseTwo" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+        <div class="card-body">
+          <ul>
+            <li>From-To: IDs of the source/sink where the pipeline starts/ends.</li>
+            <li>Total Thermal Loss of the Pipeline: sum of the thermal losses of the pipes connecting the source and the sink.</li>
+            <li>Total Installed Capacity of the Pipeline: sum of the installed capacities of the pipes connecting the source and the sink.</li>
+            <li>Pipe Length: sum of the lengths of the pipes connecting the source and the sink.</li>
+            <li>Total Cost of the Pipeline: Sum of the digging costs (excluding surface pipes), piping costs, and pump cost (if defined by the user) of the pipes connecting the source and the sink.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    {{detailed_table}}
+  </div>
+
+</body>
+
+</html>
