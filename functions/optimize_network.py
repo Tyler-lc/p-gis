@@ -1524,10 +1524,29 @@ def prepare_output_optnw(
     # Reporting the results
 
     ## Convert tables to html
+    res_sources_sinks_df.rename(
+        columns={
+            "Losses total [W]": "Thermal Losses [W]",
+            "Installed capacity [MW]": "Installed Capacity [MW]",
+            "Length [m]": "Length [m]",
+            "Total_costs [EUR]": "Total Cost [EUR]"
+        },
+        inplace=True,
+    )
+
     res_sources_sinks_html  =  res_sources_sinks_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
     res_sources_sinks_table = res_sources_sinks_html.replace('<tr>', '<tr align="center">')
 
     sums_df = pd.DataFrame.from_dict([sums])
+    sums_df.rename(
+        columns={
+            "losses_total": "Total Thermal Loss [W]",
+            "installed_capacity": "Total Installed Capacity [MW]",
+            "length": "Total Network Length [m]",
+            "total_costs": "Total Costs [EUR]"
+        },
+        inplace=True,
+    )
     sums_html = sums_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
     sums_table = sums_html.replace('<tr>', '<tr align="center">')
 
@@ -1539,10 +1558,6 @@ def prepare_output_optnw(
     template = env.get_template('report_template.html')
     template_content = template.render(plot=[], streams=[], agg_table = sums_table, detailed_table = res_sources_sinks_table)
 
-    f = open("report.html", "w")
-    f.write(template_content)
-    f.close()
-
     return {
         "res_sources_sinks": res_sources_sinks,
         "sums": sums,
@@ -1552,5 +1567,6 @@ def prepare_output_optnw(
         "potential_edges": potential_edges.to_dict("records"),
         "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
-        "source_losses": source_losses
+        "source_losses": source_losses,
+        "template_content": template_content
     }
