@@ -22,6 +22,7 @@ import json
 import gurobipy as gp
 
 from jinja2 import Environment, FileSystemLoader #for creating html report
+import os
 
 from ..utilities.kb import KB
 from ..utilities.integration import get_value
@@ -1550,9 +1551,13 @@ def prepare_output_optnw(
     sums_html = sums_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
     sums_table = sums_html.replace('<tr>', '<tr align="center">')
 
+    script_dir = os.path.dirname(__file__)
+
+    print(script_dir)
+
     env = Environment(
-    loader=FileSystemLoader('asset'),
-    autoescape=False
+        loader=FileSystemLoader(os.path.join(script_dir, "asset")),
+        autoescape=False
     )
 
     template = env.get_template('report_template.html')
