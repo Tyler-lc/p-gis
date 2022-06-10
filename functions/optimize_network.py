@@ -1473,36 +1473,6 @@ def prepare_output_optnw(
         errors="ignore",
     )
     res_sources_sinks = res_sources_sinks.to_dict("records")
-    
-    # Define function to calculate source spcefic loses for CF
-    # input  -> res_sources_sinks
-    # output -> e.g [{'source_id': '2', 'losses_total': 51635.976}, {'source_id': '1', 'losses_total': 507998.816}]; losses in kW
-    def get_gis_max_source_losses(gis_info):
-        source_loss_vec = []
-        sources_info = {}
-        for dict in gis_info:
-            start = dict['from_to'].find("(") + 1
-            end = dict['from_to'].find(",")
-            substring = dict['from_to'][start:end]
-            sources_info[str(substring)] = 0
-
-        for dict in gis_info:
-            start = dict['from_to'].find("(") + 1
-            end = dict['from_to'].find(",")
-            substring = dict['from_to'][start:end]
-
-            for source in sources_info:
-                if sources_info[str(substring)] < dict['losses_total']:
-                    sources_info[str(substring)] = dict['losses_total']
-                    break
-
-        for sources_id, source_loss in sources_info.items():
-            source_loss_vec.append({'source_id': sources_id,
-                                    'losses_total': source_loss/1000})
-
-        return source_loss_vec    
-
-    source_losses = get_gis_max_source_losses(res_sources_sinks)
 
     # Preparing Network Solution for Output
     solution_nodes, solution_edges = ox.graph_to_gdfs(network_solution)
@@ -1572,6 +1542,5 @@ def prepare_output_optnw(
         "potential_edges": potential_edges.to_dict("records"),
         "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
-        "source_losses": source_losses,
         "template_content": template_content
     }
