@@ -1542,5 +1542,5 @@ def prepare_output_optnw(
         "potential_edges": potential_edges.to_dict("records"),
         "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
-        "template_content": template_content
+        "report": template_content
     }
