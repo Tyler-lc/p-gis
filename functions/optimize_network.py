@@ -18,6 +18,7 @@ from pyomo.opt import *
 import numpy as np
 import folium
 import json
+from folium.plugins import MarkerCluster
 
 import gurobipy as gp
 
@@ -1115,20 +1116,29 @@ def optimize_network(
     style = {'fillColor': '#00FFFFFF', 'color': '#00FFFFFF'}  ####create colour for layer
     whole_area = folium.features.GeoJson(edges, name="area", style_function=lambda x: style,
                                          overlay=True)  ###create layer with whole road network
-    path = folium.features.GeoJson(edges_solution, name="path", overlay=True)  ###create layer with solution edges
+    path = folium.features.GeoJson(edges_solution.to_json(), name="path", overlay=True)  ###create layer with solution edges
 
     nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_index(drop=True)
 
+    sources_cluster = MarkerCluster(name="Sources").add_to(m)
     for i in range(0, len(nodes_to_map)):
-        sources = folium.Marker(location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
-                                icon=folium.Icon(color='red', icon="tint"), popup="Source").add_to(m)
+        sources_cluster.add_child(folium.Marker(location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
+                                icon=folium.Icon(color='red', icon="tint"), popup="Source"))
 
-    sinks = folium.features.GeoJson(nodes_solution[nodes_solution["osmid"].isin(N_demand)], name="sinks",
-                                    overlay=True, tooltip="Sink")
+
+    sinks_cluster = MarkerCluster(name="Sinks").add_to(m)
+    edges_to_map = nodes_solution[nodes_solution["osmid"].isin(N_demand)].reset_index(drop=True)
+    for i in range(0, len(edges_to_map)):
+        sinks_cluster.add_child(folium.Marker(location=[edges_to_map.loc[i, "lat"], edges_to_map.loc[i, "lon"]],
+                                icon=folium.Icon(color='blue', icon="tint"), popup="Sink"))
+    
+
+    # sinks = folium.features.GeoJson(nodes_solution[nodes_solution["osmid"].isin(N_demand)], name="sinks",
+    #                                 overlay=True, tooltip="Sink")
 
     path.add_to(m)  ###add layer to map
     whole_area.add_to(m)  ###add layer to map
-    sinks.add_to(m)
+    # sinks.add_to(m)
     folium.LayerControl().add_to(m)###add layer control to map
 
     ####add labels
