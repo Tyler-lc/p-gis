@@ -2,18 +2,32 @@ name: emb3rs-gis-module
 channels:
   - conda-forge
 dependencies:
-  - python=
-  - osmnx=
-  - scikit-learn=
-  - numpy=
+  - python=3.9
+  - osmnx=1.1.2
+  - scikit-learn=1.0.2
+  - numpy=1.22.3
   - pyomo=5.7
-  - haversine=
-  - pandas=
-  - folium=
-  - geopandas=
-  - shapely=
-  - networkx=
-  - colorama=
-  - jsonpickle=
+  - haversine=2.5.1
+  - pandas=1.4.1
+  - folium=0.12.1
+  - geopandas=0.10.2
+  - shapely=1.8.0
+  - networkx=2.7.1
+  - colorama=0.4.4
+  - jsonpickle=2.1.0
   - pip:
       - gurobipy==9.5.1
+#
+# To install this envionment use
+#
+#     $ conda env create -f environment.yml
+#
+# To activate this environment, use
+#
+#     $ conda activate emb3rs-gis-module
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+#
+# When using VS Code you need to start as administartor
