@@ -343,7 +343,7 @@ def optimize_network(
     #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
     
     ## Error handling
-    results = opt.solve(model, tee=True)
+    results = opt.solve(model, tee=False)
     if results.solver.termination_condition == TerminationCondition.infeasible:
         raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
     
@@ -497,7 +497,7 @@ def optimize_network(
         )
         
         ## Error handling
-        result_nw = opt.solve(model_nw, tee=True)
+        result_nw = opt.solve(model_nw, tee=False)
         if result_nw.solver.termination_condition == TerminationCondition.infeasible:
             raise ModuleRuntimeException(code=2.6, msg="Thermal capacity optimization without TEO is infeasible!")
 
@@ -646,7 +646,7 @@ def optimize_network(
             )
 
             ## Error handling
-            result_nw = opt.solve(model_nw, tee=True)
+            result_nw = opt.solve(model_nw, tee=False)
             if result_nw.solver.termination_condition == TerminationCondition.infeasible:
                 raise ModuleRuntimeException(code=2.7, msg="Thermal capacity optimization with TEO is infeasible!")
                     
@@ -1148,7 +1148,7 @@ def optimize_network(
 
     # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
     ####save map as html#####
-    m.save("TEST.html")
+    # m.save("TEST.html")
 
     ##############################################################################################
     ##############################################################################################
@@ -1223,6 +1223,7 @@ def optimize_network(
         network_solution,
         potential_grid_area,
         selected_agents,
+        m
     )
 
 
@@ -1261,6 +1262,7 @@ def run_optimize_network(input_data, KB: KB):
         network_solution,
         potential_grid_area,
         selected_agents,
+        map_report
     ) = optimize_network(
         nodes=network_nodes,
         edges=network_edges,
@@ -1295,6 +1297,7 @@ def run_optimize_network(input_data, KB: KB):
         network_solution=network_solution,
         potential_grid_area=potential_grid_area,
         selected_agents=selected_agents,
+        map_report=map_report
     )
 
 
@@ -1443,6 +1446,7 @@ def prepare_output_optnw(
     network_solution,
     potential_grid_area,
     selected_agents,
+    map_report
 ):
 
     cols_rename = {
@@ -1552,5 +1556,6 @@ def prepare_output_optnw(
         "potential_edges": potential_edges.to_dict("records"),
         "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
-        "report": template_content
+        "report": template_content,
+        "map_report": map_report
     }
