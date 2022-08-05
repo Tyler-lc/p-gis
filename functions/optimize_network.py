@@ -675,7 +675,7 @@ def optimize_network(
 
         result_data = pd.concat(result_data_all_TS, axis=1)
         result_data["max"] = result_data.max(axis=1)
-        result_data["max"] = round(result_data["max"], 2)
+        # result_data["max"] = round(result_data["max"], 2)
         result_data = result_data["max"].to_dict()
 
     ###################################################################
@@ -1519,6 +1519,11 @@ def prepare_output_optnw(
         inplace=True,
     )
 
+    res_sources_sinks_df["Total Cost [EUR]"] = res_sources_sinks_df["Total Cost [EUR]"].astype(float).astype(int)
+    res_sources_sinks_df["Installed Capacity [MW]"] = res_sources_sinks_df["Installed Capacity [MW]"].astype(float).astype(int)
+    res_sources_sinks_df["Length [m]"] = res_sources_sinks_df["Length [m]"].astype(float).astype(int)
+    res_sources_sinks_df["Thermal Losses [W]"] = res_sources_sinks_df["Thermal Losses [W]"].astype(float).astype(int)
+
     res_sources_sinks_html  =  res_sources_sinks_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
     res_sources_sinks_table = res_sources_sinks_html.replace('<tr>', '<tr align="center">')
 
@@ -1532,12 +1537,16 @@ def prepare_output_optnw(
         },
         inplace=True,
     )
+
+    sums_df["Total Costs [EUR]"] = sums_df["Total Costs [EUR]"].astype(float).astype(int)
+    sums_df["Total Installed Capacity [MW]"] = sums_df["Total Installed Capacity [MW]"].astype(float).astype(int)
+    sums_df["Total Network Length [m]"] = sums_df["Total Network Length [m]"].astype(float).astype(int)
+    sums_df["Total Thermal Loss [W]"] = sums_df["Total Thermal Loss [W]"].astype(float).astype(int)
+
     sums_html = sums_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
     sums_table = sums_html.replace('<tr>', '<tr align="center">')
 
     script_dir = os.path.dirname(__file__)
-
-    print(script_dir)
 
     env = Environment(
         loader=FileSystemLoader(os.path.join(script_dir, "asset")),
