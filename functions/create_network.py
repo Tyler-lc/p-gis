@@ -50,7 +50,7 @@ def create_network(
         ######ITERATION TEO - DELETE SOURCES/SINKS THAT WERE EXCLUDED FROM TEO##########
 
         Source_list_TEO = ex_cap.copy()[ex_cap["classification_type"] == "source"]
-        Source_list_TEO["sum"] = Source_list_TEO.iloc[:, 3:-1].sum(
+        Source_list_TEO["sum"] = Source_list_TEO.iloc[:, 3:].sum(
             axis=1
         )  #####hier weitermachen
         Source_list_TEO = Source_list_TEO[Source_list_TEO["sum"] > 0].drop(
