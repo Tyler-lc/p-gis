@@ -1065,7 +1065,7 @@ def optimize_network(
 
     # make the calculations for TEO
     losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / 1000
-    cost_in_kw = sums["total_costs"] / sums["installed_capacity"]
+    cost_in_kw = sums["total_costs"] / (sums["installed_capacity"] * 1000)
     # the output for TEO
     losses_cost_kw = {"losses_in_kw": losses_in_kw, "cost_in_kw": cost_in_kw}
 
