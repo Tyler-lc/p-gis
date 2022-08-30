@@ -590,10 +590,10 @@ def optimize_network(
             ######################VARS#########################################
 
             model_nw.flow = Var(
-                model_nw.edge_set, bounds=(0, 500)
+                model_nw.edge_set, bounds=(0, 500000)
             )  ###max set to thermal capacity of 500 MW
             model_nw.cap_add = Var(
-                model_nw.edge_set, bounds=(0, 500)
+                model_nw.edge_set, bounds=(0, 500000)
             )  ###additional capacity required if bottleneck
 
             ###################################################################
