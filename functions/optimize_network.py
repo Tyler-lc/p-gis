@@ -821,6 +821,9 @@ def optimize_network(
     result_df.index = result_df["key_0"]
     result_df = result_df.drop(["key_0", 2, 4], axis=1)
 
+    # NOTE: converting the pipe capacities into MW (capacities received from CF are in kW)
+    result_df["MW"] = result_df["MW"] / 1000
+
     #####Merge information about the capacity limits for existing grid elements######
     result_df = result_df.merge(
         road_nw_ex_grid["MW"],
