@@ -22,7 +22,7 @@ from folium.plugins import MarkerCluster
 
 import gurobipy as gp
 
-from jinja2 import Environment, FileSystemLoader #for creating html report
+from jinja2 import Environment, FileSystemLoader  # for creating html report
 import os
 
 from ..utilities.kb import KB
@@ -242,9 +242,13 @@ def optimize_network(
     ###################################################################
     ######################SETS#########################################
 
-    model.node_set = Set(initialize=N) # N is the IDs of all nodes
-    model.edge_set = Set(initialize=road_nw_data.keys()) # edges: ID pairs of nodes connected e.g. (17300064866, 1), (1, 17300064866) --> two way 
-    model.flow_var_set = Set(initialize=np.arange(0, len(N_supply + N_demand) + 1, 1)) # 0, 1, ..., (total number of sources and sinks)-1
+    model.node_set = Set(initialize=N)  # N is the IDs of all nodes
+    model.edge_set = Set(
+        initialize=road_nw_data.keys()
+    )  # edges: ID pairs of nodes connected e.g. (17300064866, 1), (1, 17300064866) --> two way
+    model.flow_var_set = Set(
+        initialize=np.arange(0, len(N_supply + N_demand) + 1, 1)
+    )  # 0, 1, ..., (total number of sources and sinks)-1
 
     ###################################################################
     ######################PARAMETERS EDGES#############################
@@ -282,13 +286,13 @@ def optimize_network(
     # here, we are creating a piecewise function to determine the value of "bool" variable
     # based on the "flow" variable --> if "flow" == 0 then "bool" = 0, "bool" = 1 otherwise
     model.con = Piecewise(
-        model.edge_set, # index
-        model.bool, # y value
-        model.flow, # x value
-        pw_pts=Domain_points, #domain of the piecewiese function
-        pw_constr_type="EQ", # means y=f(x) 
-        f_rule=Range_points, # range of the piecewise function
-        pw_repn="INC", # indicates the type of piecewise representation to use
+        model.edge_set,  # index
+        model.bool,  # y value
+        model.flow,  # x value
+        pw_pts=Domain_points,  # domain of the piecewiese function
+        pw_constr_type="EQ",  # means y=f(x)
+        f_rule=Range_points,  # range of the piecewise function
+        pw_repn="INC",  # indicates the type of piecewise representation to use
     )
 
     ###################################################################
@@ -341,12 +345,12 @@ def optimize_network(
     ###########SOLVE MODEL############################################
     # opt.options[
     #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
-    
+
     ## Error handling
     results = opt.solve(model, tee=False)
     if results.solver.termination_condition == TerminationCondition.infeasible:
         raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
-    
+
     # model.result.expr()
 
     ###########GET RESULTS############################################
@@ -412,7 +416,7 @@ def optimize_network(
         data_py = data_py[
             data_py["Nodes"].isin(list({k[0] for k, v in result_graph.items()}))
         ]
-        N = list(data_py.index) # list of nodes existing in the solution
+        N = list(data_py.index)  # list of nodes existing in the solution
 
         opt = solvers.SolverFactory("gurobi_direct")
         model_nw = ConcreteModel()
@@ -429,14 +433,16 @@ def optimize_network(
         ######################VARS#########################################
 
         model_nw.flow = Var(
-            #NOTE: bounds changed for testing
-            #model_nw.edge_set, bounds=(0, 9e+15)
-            model_nw.edge_set, bounds=(0, 500000)
+            # NOTE: bounds changed for testing
+            # model_nw.edge_set, bounds=(0, 9e+15)
+            model_nw.edge_set,
+            bounds=(0, 500000),
         )  ###real thermal flow on an edge, max thermal capacity set to 500 MW
         model_nw.cap_add = Var(
-            #NOTE: bounds changed for testing
-            #model_nw.edge_set, bounds=(0, 9e+15)
-            model_nw.edge_set, bounds=(0, 500000)
+            # NOTE: bounds changed for testing
+            # model_nw.edge_set, bounds=(0, 9e+15)
+            model_nw.edge_set,
+            bounds=(0, 500000),
         )  ###additional capacity required if bottleneck
 
         ###################################################################
@@ -444,16 +450,16 @@ def optimize_network(
 
         model_nw.node_demand = Param(
             model_nw.node_set, initialize=data_py["cap_dem"].to_dict()
-        )# demand capacities of nodes
+        )  # demand capacities of nodes
         model_nw.node_supply = Param(
             model_nw.node_set, initialize=data_py["cap_sup"].to_dict()
-        )# supply capacities of nodes
+        )  # supply capacities of nodes
         model_nw.edge_capacities = Param(
             model_nw.edge_set, initialize=road_nw_ex_grid["MW"].to_dict()
-        )# thermal capacity of edge
+        )  # thermal capacity of edge
         model_nw.edge_length = Param(
             model_nw.edge_set, initialize=road_nw_ex_grid[0].to_dict()
-        )# length of edge
+        )  # length of edge
 
         ###################################################################
         ######################CONSTRAINTS##################################
@@ -495,11 +501,13 @@ def optimize_network(
             ),
             sense=minimize,
         )
-        
+
         ## Error handling
         result_nw = opt.solve(model_nw, tee=False)
         if result_nw.solver.termination_condition == TerminationCondition.infeasible:
-            raise ModuleRuntimeException(code=2.6, msg="Thermal capacity optimization without TEO is infeasible!")
+            raise ModuleRuntimeException(
+                code=2.6, msg="Thermal capacity optimization without TEO is infeasible!"
+            )
 
         ###################################################################
         ######################GET RESULTS##################################
@@ -647,9 +655,15 @@ def optimize_network(
 
             ## Error handling
             result_nw = opt.solve(model_nw, tee=False)
-            if result_nw.solver.termination_condition == TerminationCondition.infeasible:
-                raise ModuleRuntimeException(code=2.7, msg="Thermal capacity optimization with TEO is infeasible!")
-                    
+            if (
+                result_nw.solver.termination_condition
+                == TerminationCondition.infeasible
+            ):
+                raise ModuleRuntimeException(
+                    code=2.7,
+                    msg="Thermal capacity optimization with TEO is infeasible!",
+                )
+
             ###################################################################
             ######################GET RESULTS##################################
 
@@ -1110,28 +1124,51 @@ def optimize_network(
     nodes_solution  ###nodes of solution network
 
     m = folium.Map(
-    location=[list(n_demand_dict.values())[0]["coords"][0], list(n_demand_dict.values())[0]["coords"][1]],
-    zoom_start=11, control_scale=True)  #####create basemap
+        location=[
+            list(n_demand_dict.values())[0]["coords"][0],
+            list(n_demand_dict.values())[0]["coords"][1],
+        ],
+        zoom_start=11,
+        control_scale=True,
+    )  #####create basemap
     #####layer for whole routing area####
-    style = {'fillColor': '#00FFFFFF', 'color': '#00FFFFFF'}  ####create colour for layer
-    whole_area = folium.features.GeoJson(edges, name="area", style_function=lambda x: style,
-                                         overlay=True)  ###create layer with whole road network
-    path = folium.features.GeoJson(edges_solution.to_json(), name="path", overlay=True)  ###create layer with solution edges
+    style = {
+        "fillColor": "#00FFFFFF",
+        "color": "#00FFFFFF",
+    }  ####create colour for layer
+    whole_area = folium.features.GeoJson(
+        edges, name="area", style_function=lambda x: style, overlay=True
+    )  ###create layer with whole road network
+    path = folium.features.GeoJson(
+        edges_solution.to_json(), name="path", overlay=True
+    )  ###create layer with solution edges
 
-    nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_index(drop=True)
+    nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_index(
+        drop=True
+    )
 
     sources_cluster = MarkerCluster(name="Sources").add_to(m)
     for i in range(0, len(nodes_to_map)):
-        sources_cluster.add_child(folium.Marker(location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
-                                icon=folium.Icon(color='red', icon="tint"), popup="Source"))
-
+        sources_cluster.add_child(
+            folium.Marker(
+                location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
+                icon=folium.Icon(color="red", icon="tint"),
+                popup="Source",
+            )
+        )
 
     sinks_cluster = MarkerCluster(name="Sinks").add_to(m)
-    edges_to_map = nodes_solution[nodes_solution["osmid"].isin(N_demand)].reset_index(drop=True)
+    edges_to_map = nodes_solution[nodes_solution["osmid"].isin(N_demand)].reset_index(
+        drop=True
+    )
     for i in range(0, len(edges_to_map)):
-        sinks_cluster.add_child(folium.Marker(location=[edges_to_map.loc[i, "lat"], edges_to_map.loc[i, "lon"]],
-                                icon=folium.Icon(color='blue', icon="tint"), popup="Sink"))
-    
+        sinks_cluster.add_child(
+            folium.Marker(
+                location=[edges_to_map.loc[i, "lat"], edges_to_map.loc[i, "lon"]],
+                icon=folium.Icon(color="blue", icon="tint"),
+                popup="Sink",
+            )
+        )
 
     # sinks = folium.features.GeoJson(nodes_solution[nodes_solution["osmid"].isin(N_demand)], name="sinks",
     #                                 overlay=True, tooltip="Sink")
@@ -1139,12 +1176,23 @@ def optimize_network(
     path.add_to(m)  ###add layer to map
     whole_area.add_to(m)  ###add layer to map
     # sinks.add_to(m)
-    folium.LayerControl().add_to(m)###add layer control to map
+    folium.LayerControl().add_to(m)  ###add layer control to map
 
     ####add labels
     folium.features.GeoJsonPopup(
-        fields=['from_to', "MW", "Diameter", "Length", "Surface_type", "cost_total", 'Losses [W/m]', 'Losses [W]','Capacity_limit'],
-        labels=True).add_to(path)
+        fields=[
+            "from_to",
+            "MW",
+            "Diameter",
+            "Length",
+            "Surface_type",
+            "cost_total",
+            "Losses [W/m]",
+            "Losses [W]",
+            "Capacity_limit",
+        ],
+        labels=True,
+    ).add_to(path)
 
     # folium.features.GeoJsonPopup(fields=["osmid"], labels=True).add_to(points)
     ####save map as html#####
@@ -1223,7 +1271,7 @@ def optimize_network(
         network_solution,
         potential_grid_area,
         selected_agents,
-        m
+        m,
     )
 
 
@@ -1262,7 +1310,7 @@ def run_optimize_network(input_data, KB: KB):
         network_solution,
         potential_grid_area,
         selected_agents,
-        map_report
+        map_report,
     ) = optimize_network(
         nodes=network_nodes,
         edges=network_edges,
@@ -1297,7 +1345,7 @@ def run_optimize_network(input_data, KB: KB):
         network_solution=network_solution,
         potential_grid_area=potential_grid_area,
         selected_agents=selected_agents,
-        map_report=map_report
+        map_report=map_report,
     )
 
 
@@ -1317,7 +1365,9 @@ def prepare_input(input_data, KB: KB):
     try:
         PlatformData(**platform)
     except ValidationError as e1:
-        raise ModuleValidationException(code=2.2, msg="Problem with PlatformData", error=e1)
+        raise ModuleValidationException(
+            code=2.2, msg="Problem with PlatformData", error=e1
+        )
 
     try:
         CFData(**cf_module)
@@ -1328,7 +1378,7 @@ def prepare_input(input_data, KB: KB):
         TEOData(**teo_module)
         TEOData2(**teo_module)
     except ValidationError as e3:
-        raise ModuleValidationException(code=2.4, msg="Problem with TEOData", error=e3)     
+        raise ModuleValidationException(code=2.4, msg="Problem with TEOData", error=e3)
 
     # from GIS
     nodes = get_value(gis_module, "nodes", [])
@@ -1446,7 +1496,7 @@ def prepare_output_optnw(
     network_solution,
     potential_grid_area,
     selected_agents,
-    map_report
+    map_report,
 ):
 
     cols_rename = {
@@ -1514,18 +1564,30 @@ def prepare_output_optnw(
             "Losses total [W]": "Thermal Losses [W]",
             "Installed capacity [MW]": "Installed Capacity [MW]",
             "Length [m]": "Length [m]",
-            "Total_costs [EUR]": "Total Cost [EUR]"
+            "Total_costs [EUR]": "Total Cost [EUR]",
         },
         inplace=True,
     )
 
-    res_sources_sinks_df["Total Cost [EUR]"] = res_sources_sinks_df["Total Cost [EUR]"].astype(float).astype(int)
-    res_sources_sinks_df["Installed Capacity [MW]"] = res_sources_sinks_df["Installed Capacity [MW]"].astype(float).astype(int)
-    res_sources_sinks_df["Length [m]"] = res_sources_sinks_df["Length [m]"].astype(float).astype(int)
-    res_sources_sinks_df["Thermal Losses [W]"] = res_sources_sinks_df["Thermal Losses [W]"].astype(float).astype(int)
+    res_sources_sinks_df["Total Cost [EUR]"] = (
+        res_sources_sinks_df["Total Cost [EUR]"].astype(float).astype(int)
+    )
+    res_sources_sinks_df["Installed Capacity [MW]"] = (
+        res_sources_sinks_df["Installed Capacity [MW]"].astype(float).astype(int)
+    )
+    res_sources_sinks_df["Length [m]"] = (
+        res_sources_sinks_df["Length [m]"].astype(float).astype(int)
+    )
+    res_sources_sinks_df["Thermal Losses [W]"] = (
+        res_sources_sinks_df["Thermal Losses [W]"].astype(float).astype(int)
+    )
 
-    res_sources_sinks_html  =  res_sources_sinks_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
-    res_sources_sinks_table = res_sources_sinks_html.replace('<tr>', '<tr align="center">')
+    res_sources_sinks_html = res_sources_sinks_df.to_html(
+        classes=["table"], index=False, col_space=100, justify="center"
+    )
+    res_sources_sinks_table = res_sources_sinks_html.replace(
+        "<tr>", '<tr align="center">'
+    )
 
     sums_df = pd.DataFrame.from_dict([sums])
     sums_df.rename(
@@ -1533,28 +1595,42 @@ def prepare_output_optnw(
             "losses_total": "Total Thermal Loss [W]",
             "installed_capacity": "Total Installed Capacity [MW]",
             "length": "Total Network Length [m]",
-            "total_costs": "Total Costs [EUR]"
+            "total_costs": "Total Costs [EUR]",
         },
         inplace=True,
     )
 
-    sums_df["Total Costs [EUR]"] = sums_df["Total Costs [EUR]"].astype(float).astype(int)
-    sums_df["Total Installed Capacity [MW]"] = sums_df["Total Installed Capacity [MW]"].astype(float).astype(int)
-    sums_df["Total Network Length [m]"] = sums_df["Total Network Length [m]"].astype(float).astype(int)
-    sums_df["Total Thermal Loss [W]"] = sums_df["Total Thermal Loss [W]"].astype(float).astype(int)
+    sums_df["Total Costs [EUR]"] = (
+        sums_df["Total Costs [EUR]"].astype(float).astype(int)
+    )
+    sums_df["Total Installed Capacity [MW]"] = (
+        sums_df["Total Installed Capacity [MW]"].astype(float).astype(int)
+    )
+    sums_df["Total Network Length [m]"] = (
+        sums_df["Total Network Length [m]"].astype(float).astype(int)
+    )
+    sums_df["Total Thermal Loss [W]"] = (
+        sums_df["Total Thermal Loss [W]"].astype(float).astype(int)
+    )
 
-    sums_html = sums_df.to_html(classes=['table'], index=False, col_space= 100, justify='center')
-    sums_table = sums_html.replace('<tr>', '<tr align="center">')
+    sums_html = sums_df.to_html(
+        classes=["table"], index=False, col_space=100, justify="center"
+    )
+    sums_table = sums_html.replace("<tr>", '<tr align="center">')
 
     script_dir = os.path.dirname(__file__)
 
     env = Environment(
-        loader=FileSystemLoader(os.path.join(script_dir, "asset")),
-        autoescape=False
+        loader=FileSystemLoader(os.path.join(script_dir, "asset")), autoescape=False
     )
 
-    template = env.get_template('report_template.html')
-    template_content = template.render(plot=[], streams=[], agg_table = sums_table, detailed_table = res_sources_sinks_table)
+    template = env.get_template("report_template.html")
+    template_content = template.render(
+        plot=[],
+        streams=[],
+        agg_table=sums_table,
+        detailed_table=res_sources_sinks_table,
+    )
 
     return {
         "res_sources_sinks": res_sources_sinks,
@@ -1566,5 +1642,5 @@ def prepare_output_optnw(
         "potential_nodes": potential_nodes.to_dict("records"),
         "selected_agents": selected_agents,
         "report": template_content,
-        "map_report": map_report
+        "map_report": map_report,
     }
