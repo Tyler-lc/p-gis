@@ -1403,6 +1403,21 @@ def prepare_input(input_data, KB: KB):
     n_supply_list = get_value(cf_module, "n_supply_list", [])
     n_demand_list = get_value(cf_module, "n_demand_list", [])
 
+    n_supply_list = get_value(cf_module, "n_supply_list", [])
+    n_demand_list = get_value(cf_module, "n_demand_list", [])
+
+    # get the grid specific source from the CF and add it to supply list
+    n_grid_specific = get_value(cf_module, "n_grid_specific", [])
+    n_supply_list.extend(n_grid_specific)
+
+    # get the heat storages from the CF and add them to supply and demand lists
+    thermal_storages = get_value(cf_module, "n_thermal_storage", [])
+    heat_storage_sink = [i for i in thermal_storages if i["id"] == -1]
+    heat_storage_source = [i for i in thermal_storages if i["id"] == -2]
+
+    n_demand_list.extend(heat_storage_sink)
+    n_supply_list.extend(heat_storage_source)
+
     # from TEO
     in_cap = get_value(teo_module, "ex_cap", [])
 
