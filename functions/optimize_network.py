@@ -384,7 +384,7 @@ def optimize_network(
     MW_dia_con = pd.DataFrame(columns=["Diameter", "v", "A", "MW"])
     MW_dia_con["Diameter"] = np.arange(0.01, 1.001, 0.001)
     MW_dia_con["A"] = ((MW_dia_con["Diameter"] / 2) ** 2) * 3.14159265359
-    MW_dia_con["v"] = 4.7617 * (MW_dia_con["Diameter"] / 2) ** 0.3701 - 0.4834
+    MW_dia_con["v"] = 4.7617 * (MW_dia_con["Diameter"]) ** 0.3701 - 0.4834
     MW_dia_con["MW"] = (
         MW_dia_con.A
         * MW_dia_con.v
@@ -948,7 +948,7 @@ def optimize_network(
     MW_dia_con = pd.DataFrame(columns=["Diameter", "v", "A", "MW"])
     MW_dia_con["Diameter"] = np.arange(0.01, 1.001, 0.001)
     MW_dia_con["A"] = ((MW_dia_con["Diameter"] / 2) ** 2) * 3.14159265359
-    MW_dia_con["v"] = 4.7617 * (MW_dia_con["Diameter"] / 2) ** 0.3701 - 0.4834
+    MW_dia_con["v"] = 4.7617 * (MW_dia_con["Diameter"]) ** 0.3701 - 0.4834
     MW_dia_con["MW"] = (
         MW_dia_con.A
         * MW_dia_con.v
