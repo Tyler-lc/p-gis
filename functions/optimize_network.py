@@ -1005,6 +1005,9 @@ def optimize_network(
     result_df["Losses [W]"] = result_df["Losses [W/m]"] * result_df["Length"]
     result_df["Losses [W]"] = round(result_df["Losses [W]"], 3)
 
+    # NOTE: adding the losses to the pipe capacities
+    # result_df["MW"] = result_df["MW"] + (result_df["Losses [W]"] / 1e6)
+
     ################################################
     ################Calculate costs#################
     ################################################
@@ -1034,12 +1037,19 @@ def optimize_network(
 
     rows_list = []
     for i in so_sin_cols:
-        df = res_sources_sinks.loc[:, [i, "cost_total", "Losses [W]", "Length", "MW"]]
+        sink = int(i.split()[1].split(")")[0])
+
+        if sink == -1:
+            continue
+
+        df = res_sources_sinks.loc[
+            :, [i, "u", "v", "cost_total", "Losses [W]", "Length", "MW"]
+        ]
         df = df[df[i] != 0]
         df_sum = [
             i,
             df["Losses [W]"].sum(),
-            df["MW"].sum(),
+            df[df["v"] == sink]["MW"].values[0],
             df["Length"].sum(),
             df["cost_total"].sum(),
         ]
@@ -1058,7 +1068,7 @@ def optimize_network(
 
     sums = {
         "losses_total": result_df["Losses [W]"].sum(),
-        "installed_capacity": result_df["MW"].sum(),
+        "installed_capacity": result_df[result_df.v.isin(N_demand)]["MW"].sum(),
         "length": result_df["Length"].sum(),
         "total_costs": (result_df["cost_total"].sum() + invest_pumps),
     }
