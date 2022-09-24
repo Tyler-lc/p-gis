@@ -704,7 +704,7 @@ def optimize_network(
 
     graph_test = nx.Graph()
     graph_test.add_edges_from(graph_test_data.keys())
-    nx.draw(graph_test)
+    # nx.draw(graph_test)
 
     ###########GET NUMBER OF SUBGRAPHS IN GRAPH########################
 
