@@ -66,6 +66,7 @@ def optimize_network(
     vc_pip_ex: dict,
     invest_pumps: dict,
     ex_cap: pd.DataFrame,
+    names_dict: dict,
 ):
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
@@ -1074,7 +1075,7 @@ def optimize_network(
     }
 
     # make the calculations for TEO
-    losses_in_kw = res_sources_sinks["Losses total [W]"].mean() / 1000
+    losses_in_kw = sums["losses_total"] / 1000
     cost_in_kw = sums["total_costs"] / (sums["installed_capacity"] * 1000)
     # the output for TEO
     losses_cost_kw = {"losses_in_kw": losses_in_kw, "cost_in_kw": cost_in_kw}
@@ -1285,6 +1286,7 @@ def optimize_network(
         potential_grid_area,
         selected_agents,
         m,
+        names_dict,
     )
 
 
@@ -1314,6 +1316,7 @@ def run_optimize_network(input_data, KB: KB):
         vc_pip_ex,
         invest_pumps,
         ex_cap,
+        names_dict
     ) = prepare_input(input_data, KB)
 
     (
@@ -1324,6 +1327,7 @@ def run_optimize_network(input_data, KB: KB):
         potential_grid_area,
         selected_agents,
         map_report,
+        names_dict,
     ) = optimize_network(
         nodes=network_nodes,
         edges=network_edges,
@@ -1349,6 +1353,7 @@ def run_optimize_network(input_data, KB: KB):
         vc_pip_ex=vc_pip_ex,
         invest_pumps=invest_pumps,
         ex_cap=ex_cap,
+        names_dict=names_dict,
     )
 
     return prepare_output_optnw(
@@ -1359,6 +1364,7 @@ def run_optimize_network(input_data, KB: KB):
         potential_grid_area=potential_grid_area,
         selected_agents=selected_agents,
         map_report=map_report,
+        names_dict=names_dict
     )
 
 
@@ -1400,9 +1406,6 @@ def prepare_input(input_data, KB: KB):
     supply_list = get_value(gis_module, "supply_list", [])
 
     # from CF
-    n_supply_list = get_value(cf_module, "n_supply_list", [])
-    n_demand_list = get_value(cf_module, "n_demand_list", [])
-
     n_supply_list = get_value(cf_module, "n_supply_list", [])
     n_demand_list = get_value(cf_module, "n_demand_list", [])
 
@@ -1468,6 +1471,9 @@ def prepare_input(input_data, KB: KB):
         platform, "invest_pumps", KB.get("parameters_default.invest_pumps")
     )
 
+    names_dict = {v["id"]: v["name"] for v in n_supply_list}
+    names_dict.update({v["id"]: v["name"] for v in n_demand_list})
+
     n_supply_dict = {
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
         for v in filter(lambda supplier: supplier["id"] in supply_list, n_supply_list)
@@ -1487,6 +1493,8 @@ def prepare_input(input_data, KB: KB):
         ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
             ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
         )
+
+
 
     return (
         nodes,
@@ -1513,6 +1521,7 @@ def prepare_input(input_data, KB: KB):
         vc_pip_ex,
         invest_pumps,
         ex_cap,
+        names_dict,
     )
 
 
@@ -1525,6 +1534,7 @@ def prepare_output_optnw(
     potential_grid_area,
     selected_agents,
     map_report,
+    names_dict,
 ):
 
     cols_rename = {
@@ -1610,6 +1620,26 @@ def prepare_output_optnw(
         res_sources_sinks_df["Thermal Losses [W]"].astype(float).astype(int)
     )
 
+    res_sources_sinks_df[['From', 'To']] = res_sources_sinks_df['From/to'].str.split(', ', expand=True)
+
+    Assign1 = []
+    for x in res_sources_sinks_df.From:
+        for j in names_dict:
+            if (','.join(["(%d" % j ])) == x:
+                Assign1.append(names_dict[j])
+
+
+    Assign2 = []
+    for x in res_sources_sinks_df.To:
+        for j in names_dict:
+            if (','.join(["%d)" % j ])) == x:
+                Assign2.append(names_dict[j])
+
+    res_sources_sinks_df["From"] = Assign1
+    res_sources_sinks_df["To"] = Assign2
+
+    res_sources_sinks_df = res_sources_sinks_df[["From", "To", 'Thermal Losses [W]', 'Installed Capacity [MW]', 'Length [m]', 'Total Cost [EUR]']]
+
     res_sources_sinks_html = res_sources_sinks_df.to_html(
         classes=["table"], index=False, col_space=100, justify="center"
     )
@@ -1671,4 +1701,5 @@ def prepare_output_optnw(
         "selected_agents": selected_agents,
         "report": template_content,
         "map_report": map_report,
+        "names_dict": names_dict
     }
