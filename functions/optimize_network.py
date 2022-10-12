@@ -1599,25 +1599,25 @@ def prepare_output_optnw(
     ## Convert tables to html
     res_sources_sinks_df.rename(
         columns={
-            "Losses total [W]": "Thermal Losses [W]",
-            "Installed capacity [MW]": "Installed Capacity [MW]",
-            "Length [m]": "Length [m]",
-            "Total_costs [EUR]": "Total Cost [EUR]",
+            "Losses total [W]": "Thermal Losses [kW]",
+            "Installed capacity [MW]": "Installed Capacity [kW]",
+            "Length [m]": "Length [km]",
+            "Total_costs [EUR]": "Total Cost [MEUR]",
         },
         inplace=True,
     )
 
-    res_sources_sinks_df["Total Cost [EUR]"] = (
-        res_sources_sinks_df["Total Cost [EUR]"].astype(float).astype(int)
+    res_sources_sinks_df["Total Cost [MEUR]"] = (
+        round(res_sources_sinks_df["Total Cost [MEUR]"]/1e6, 2)
     )
-    res_sources_sinks_df["Installed Capacity [MW]"] = (
-        res_sources_sinks_df["Installed Capacity [MW]"].astype(float).astype(int)
+    res_sources_sinks_df["Installed Capacity [kW]"] = (
+        round(res_sources_sinks_df["Installed Capacity [kW]"]*1e3, 2)
     )
-    res_sources_sinks_df["Length [m]"] = (
-        res_sources_sinks_df["Length [m]"].astype(float).astype(int)
+    res_sources_sinks_df["Length [km]"] = (
+        round(res_sources_sinks_df["Length [km]"]/1e3, 2)
     )
-    res_sources_sinks_df["Thermal Losses [W]"] = (
-        res_sources_sinks_df["Thermal Losses [W]"].astype(float).astype(int)
+    res_sources_sinks_df["Thermal Losses [kW]"] = (
+        round(res_sources_sinks_df["Thermal Losses [kW]"]/1e3, 2)
     )
 
     res_sources_sinks_df[['From', 'To']] = res_sources_sinks_df['From/to'].str.split(', ', expand=True)
@@ -1638,7 +1638,7 @@ def prepare_output_optnw(
     res_sources_sinks_df["From"] = Assign1
     res_sources_sinks_df["To"] = Assign2
 
-    res_sources_sinks_df = res_sources_sinks_df[["From", "To", 'Thermal Losses [W]', 'Installed Capacity [MW]', 'Length [m]', 'Total Cost [EUR]']]
+    res_sources_sinks_df = res_sources_sinks_df[["From", "To", 'Thermal Losses [kW]', 'Installed Capacity [kW]', 'Length [km]', 'Total Cost [MEUR]']]
 
     res_sources_sinks_html = res_sources_sinks_df.to_html(
         classes=["table"], index=False, col_space=100, justify="center"
@@ -1650,25 +1650,25 @@ def prepare_output_optnw(
     sums_df = pd.DataFrame.from_dict([sums])
     sums_df.rename(
         columns={
-            "losses_total": "Total Thermal Loss [W]",
-            "installed_capacity": "Total Installed Capacity [MW]",
-            "length": "Total Network Length [m]",
-            "total_costs": "Total Costs [EUR]",
+            "losses_total": "Total Thermal Loss [kW]",
+            "installed_capacity": "Total Installed Capacity [kW]",
+            "length": "Total Network Length [km]",
+            "total_costs": "Total Costs [MEUR]",
         },
         inplace=True,
     )
 
-    sums_df["Total Costs [EUR]"] = (
-        sums_df["Total Costs [EUR]"].astype(float).astype(int)
+    sums_df["Total Costs [MEUR]"] = (
+        round(sums_df["Total Costs [MEUR]"]/1e6, 2)
     )
-    sums_df["Total Installed Capacity [MW]"] = (
-        sums_df["Total Installed Capacity [MW]"].astype(float).astype(int)
+    sums_df["Total Installed Capacity [kW]"] = (
+        round(sums_df["Total Installed Capacity [kW]"]*1e3, 2)
     )
-    sums_df["Total Network Length [m]"] = (
-        sums_df["Total Network Length [m]"].astype(float).astype(int)
+    sums_df["Total Network Length [km]"] = (
+        round(sums_df["Total Network Length [km]"]/1e3, 2)
     )
-    sums_df["Total Thermal Loss [W]"] = (
-        sums_df["Total Thermal Loss [W]"].astype(float).astype(int)
+    sums_df["Total Thermal Loss [kW]"] = (
+        round(sums_df["Total Thermal Loss [kW]"]/1e3, 2)
     )
 
     sums_html = sums_df.to_html(
