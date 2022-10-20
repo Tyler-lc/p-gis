@@ -67,6 +67,7 @@ def optimize_network(
     invest_pumps: dict,
     ex_cap: pd.DataFrame,
     names_dict: dict,
+    time_limit,
 ):
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
@@ -344,8 +345,12 @@ def optimize_network(
             model.flow[i]
 
     ###########SOLVE MODEL############################################
-    # opt.options[
-    #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
+    if time_limit == 0:
+        pass
+    else:
+        opt.options["timelimit"] = (
+            time_limit * 60
+        )  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
 
     ## Error handling
     results = opt.solve(model, tee=False)
@@ -1316,7 +1321,8 @@ def run_optimize_network(input_data, KB: KB):
         vc_pip_ex,
         invest_pumps,
         ex_cap,
-        names_dict
+        names_dict,
+        time_limit,
     ) = prepare_input(input_data, KB)
 
     (
@@ -1354,6 +1360,7 @@ def run_optimize_network(input_data, KB: KB):
         invest_pumps=invest_pumps,
         ex_cap=ex_cap,
         names_dict=names_dict,
+        time_limit=time_limit,
     )
 
     return prepare_output_optnw(
@@ -1364,7 +1371,7 @@ def run_optimize_network(input_data, KB: KB):
         potential_grid_area=potential_grid_area,
         selected_agents=selected_agents,
         map_report=map_report,
-        names_dict=names_dict
+        names_dict=names_dict,
     )
 
 
@@ -1470,6 +1477,7 @@ def prepare_input(input_data, KB: KB):
     invest_pumps = get_value(
         platform, "invest_pumps", KB.get("parameters_default.invest_pumps")
     )
+    time_limit = get_value(platform, "time_limit", 0)
 
     names_dict = {v["id"]: v["name"] for v in n_supply_list}
     names_dict.update({v["id"]: v["name"] for v in n_demand_list})
@@ -1493,8 +1501,6 @@ def prepare_input(input_data, KB: KB):
         ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
             ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
         )
-
-
 
     return (
         nodes,
@@ -1522,6 +1528,7 @@ def prepare_input(input_data, KB: KB):
         invest_pumps,
         ex_cap,
         names_dict,
+        time_limit,
     )
 
 
@@ -1607,38 +1614,48 @@ def prepare_output_optnw(
         inplace=True,
     )
 
-    res_sources_sinks_df["Total Cost [MEUR]"] = (
-        round(res_sources_sinks_df["Total Cost [MEUR]"]/1e6, 2)
+    res_sources_sinks_df["Total Cost [MEUR]"] = round(
+        res_sources_sinks_df["Total Cost [MEUR]"] / 1e6, 2
     )
-    res_sources_sinks_df["Installed Capacity [kW]"] = (
-        round(res_sources_sinks_df["Installed Capacity [kW]"]*1e3, 2)
+    res_sources_sinks_df["Installed Capacity [kW]"] = round(
+        res_sources_sinks_df["Installed Capacity [kW]"] * 1e3, 2
     )
-    res_sources_sinks_df["Length [km]"] = (
-        round(res_sources_sinks_df["Length [km]"]/1e3, 2)
+    res_sources_sinks_df["Length [km]"] = round(
+        res_sources_sinks_df["Length [km]"] / 1e3, 2
     )
-    res_sources_sinks_df["Thermal Losses [kW]"] = (
-        round(res_sources_sinks_df["Thermal Losses [kW]"]/1e3, 2)
+    res_sources_sinks_df["Thermal Losses [kW]"] = round(
+        res_sources_sinks_df["Thermal Losses [kW]"] / 1e3, 2
     )
 
-    res_sources_sinks_df[['From', 'To']] = res_sources_sinks_df['From/to'].str.split(', ', expand=True)
+    res_sources_sinks_df[["From", "To"]] = res_sources_sinks_df["From/to"].str.split(
+        ", ", expand=True
+    )
 
     Assign1 = []
     for x in res_sources_sinks_df.From:
         for j in names_dict:
-            if (','.join(["(%d" % j ])) == x:
+            if (",".join(["(%d" % j])) == x:
                 Assign1.append(names_dict[j])
-
 
     Assign2 = []
     for x in res_sources_sinks_df.To:
         for j in names_dict:
-            if (','.join(["%d)" % j ])) == x:
+            if (",".join(["%d)" % j])) == x:
                 Assign2.append(names_dict[j])
 
     res_sources_sinks_df["From"] = Assign1
     res_sources_sinks_df["To"] = Assign2
 
-    res_sources_sinks_df = res_sources_sinks_df[["From", "To", 'Thermal Losses [kW]', 'Installed Capacity [kW]', 'Length [km]', 'Total Cost [MEUR]']]
+    res_sources_sinks_df = res_sources_sinks_df[
+        [
+            "From",
+            "To",
+            "Thermal Losses [kW]",
+            "Installed Capacity [kW]",
+            "Length [km]",
+            "Total Cost [MEUR]",
+        ]
+    ]
 
     res_sources_sinks_html = res_sources_sinks_df.to_html(
         classes=["table"], index=False, col_space=100, justify="center"
@@ -1658,17 +1675,15 @@ def prepare_output_optnw(
         inplace=True,
     )
 
-    sums_df["Total Costs [MEUR]"] = (
-        round(sums_df["Total Costs [MEUR]"]/1e6, 2)
+    sums_df["Total Costs [MEUR]"] = round(sums_df["Total Costs [MEUR]"] / 1e6, 2)
+    sums_df["Total Installed Capacity [kW]"] = round(
+        sums_df["Total Installed Capacity [kW]"] * 1e3, 2
     )
-    sums_df["Total Installed Capacity [kW]"] = (
-        round(sums_df["Total Installed Capacity [kW]"]*1e3, 2)
+    sums_df["Total Network Length [km]"] = round(
+        sums_df["Total Network Length [km]"] / 1e3, 2
     )
-    sums_df["Total Network Length [km]"] = (
-        round(sums_df["Total Network Length [km]"]/1e3, 2)
-    )
-    sums_df["Total Thermal Loss [kW]"] = (
-        round(sums_df["Total Thermal Loss [kW]"]/1e3, 2)
+    sums_df["Total Thermal Loss [kW]"] = round(
+        sums_df["Total Thermal Loss [kW]"] / 1e3, 2
     )
 
     sums_html = sums_df.to_html(
@@ -1701,5 +1716,5 @@ def prepare_output_optnw(
         "selected_agents": selected_agents,
         "report": template_content,
         "map_report": map_report,
-        "names_dict": names_dict
+        "names_dict": names_dict,
     }
