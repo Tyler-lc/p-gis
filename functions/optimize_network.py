@@ -68,6 +68,7 @@ def optimize_network(
     ex_cap: pd.DataFrame,
     names_dict: dict,
     time_limit,
+    solver,
 ):
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
@@ -238,7 +239,7 @@ def optimize_network(
     ################Pyomo model routing#############
     ################################################
 
-    opt = solvers.SolverFactory("gurobi_direct")
+    opt = solvers.SolverFactory(solver)
     model = ConcreteModel()
 
     ###################################################################
@@ -424,7 +425,7 @@ def optimize_network(
         ]
         N = list(data_py.index)  # list of nodes existing in the solution
 
-        opt = solvers.SolverFactory("gurobi_direct")
+        opt = solvers.SolverFactory(solver)
         model_nw = ConcreteModel()
 
         ###################################################################
@@ -581,7 +582,7 @@ def optimize_network(
             data_py = data_py.fillna(0)
 
             #############SET UP MODEL###########################
-            opt = solvers.SolverFactory("gurobi_direct")
+            opt = solvers.SolverFactory(solver)
             model_nw = ConcreteModel()
 
             ###################################################################
@@ -1323,6 +1324,7 @@ def run_optimize_network(input_data, KB: KB):
         ex_cap,
         names_dict,
         time_limit,
+        solver,
     ) = prepare_input(input_data, KB)
 
     (
@@ -1361,6 +1363,7 @@ def run_optimize_network(input_data, KB: KB):
         ex_cap=ex_cap,
         names_dict=names_dict,
         time_limit=time_limit,
+        solver=solver,
     )
 
     return prepare_output_optnw(
@@ -1478,6 +1481,11 @@ def prepare_input(input_data, KB: KB):
         platform, "invest_pumps", KB.get("parameters_default.invest_pumps")
     )
     time_limit = get_value(platform, "time_limit", 0)
+    solver = get_value(platform, "solver", "GUROBI")
+    if solver == "GUROBI":
+        solver = "gurobi_direct"
+    elif solver == "SCIP":
+        solver = "scip"
 
     names_dict = {v["id"]: v["name"] for v in n_supply_list}
     names_dict.update({v["id"]: v["name"] for v in n_demand_list})
@@ -1529,6 +1537,7 @@ def prepare_input(input_data, KB: KB):
         ex_cap,
         names_dict,
         time_limit,
+        solver,
     )
 
 
