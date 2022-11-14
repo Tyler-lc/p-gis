@@ -18,5 +18,6 @@ dependencies:
   - jsonpickle==2.1.0
   - gurobi=9.5.1
   - pydantic
+  - pyscipopt=4.2.0
   - pip:
       - gurobipy=9.5.1

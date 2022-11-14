@@ -24,6 +24,7 @@ import gurobipy as gp
 
 from jinja2 import Environment, FileSystemLoader  # for creating html report
 import os
+import sys
 
 from ..utilities.kb import KB
 from ..utilities.integration import get_value
@@ -239,7 +240,8 @@ def optimize_network(
     ################Pyomo model routing#############
     ################################################
 
-    opt = solvers.SolverFactory(solver)
+    executable = f"{os.path.dirname(sys.executable)}/scip" if solver == "scip" else None
+    opt = solvers.SolverFactory(solver, executable=executable)
     model = ConcreteModel()
 
     ###################################################################
@@ -425,7 +427,7 @@ def optimize_network(
         ]
         N = list(data_py.index)  # list of nodes existing in the solution
 
-        opt = solvers.SolverFactory(solver)
+        opt = solvers.SolverFactory(solver, executable=executable)
         model_nw = ConcreteModel()
 
         ###################################################################
@@ -582,7 +584,7 @@ def optimize_network(
             data_py = data_py.fillna(0)
 
             #############SET UP MODEL###########################
-            opt = solvers.SolverFactory(solver)
+            opt = solvers.SolverFactory(solver, executable=executable)
             model_nw = ConcreteModel()
 
             ###################################################################
