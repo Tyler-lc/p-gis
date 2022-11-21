@@ -87,6 +87,24 @@ def create_network(
         )
         road_nw = ox.simplify_graph(road_nw)
 
+    elif network_resolution == "medium_high":
+
+        cf = '["highway"~"trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|residential"]'
+
+        road_nw = ox.graph_from_polygon(
+            polygon, simplify=False, clean_periphery=True, custom_filter=cf
+        )
+        road_nw = ox.simplify_graph(road_nw)
+
+    elif network_resolution == "medium_low":
+
+        cf = '["highway"~"trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link"]'
+
+        road_nw = ox.graph_from_polygon(
+            polygon, simplify=False, clean_periphery=True, custom_filter=cf
+        )
+        road_nw = ox.simplify_graph(road_nw)
+
     elif network_resolution == "low":
 
         cf = '["highway"~"primary|primary_link|secondary|secondary_link"]'
@@ -381,7 +399,9 @@ def prepare_input(input_data, KB: KB):
     try:
         PlatformData(**platform)
     except ValidationError as e0:
-        raise ModuleValidationException(code=1.1, msg="Problem with PlatformData", error=e0)
+        raise ModuleValidationException(
+            code=1.1, msg="Problem with PlatformData", error=e0
+        )
 
     try:
         CFData(**cf_module)
@@ -392,8 +412,7 @@ def prepare_input(input_data, KB: KB):
         TEOData(**teo_module)
         TEOData2(**teo_module)
     except ValidationError as e2:
-        raise ModuleValidationException(code=1.3, msg="Problem with TEOData", error=e2)   
-
+        raise ModuleValidationException(code=1.3, msg="Problem with TEOData", error=e2)
 
     ## From the platform
     ## - ex_grid
@@ -412,15 +431,15 @@ def prepare_input(input_data, KB: KB):
 
     n_supply_list = get_value(cf_module, "n_supply_list", [])
     n_demand_list = get_value(cf_module, "n_demand_list", [])
-    
-    # get the grid specific source from the CF and add it to supply list 
+
+    # get the grid specific source from the CF and add it to supply list
     n_grid_specific = get_value(cf_module, "n_grid_specific", [])
     n_supply_list.extend(n_grid_specific)
 
     # get the heat storages from the CF and add them to supply and demand lists
     thermal_storages = get_value(cf_module, "n_thermal_storage", [])
-    heat_storage_sink = [i for i in thermal_storages if i["id"]==-1]
-    heat_storage_source = [i for i in thermal_storages if i["id"]==-2]
+    heat_storage_sink = [i for i in thermal_storages if i["id"] == -1]
+    heat_storage_source = [i for i in thermal_storages if i["id"] == -2]
 
     n_demand_list.extend(heat_storage_sink)
     n_supply_list.extend(heat_storage_source)
@@ -444,7 +463,7 @@ def prepare_input(input_data, KB: KB):
         v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
     }
 
-    #polygon = [[x,y], [x,y], [x,y], [x,y]]
+    # polygon = [[x,y], [x,y], [x,y], [x,y]]
     coords_list = [(i[1], i[0]) for i in polygon]
 
     ex_cap = pd.DataFrame(in_cap)
