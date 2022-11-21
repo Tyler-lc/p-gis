@@ -98,7 +98,7 @@ def create_network(
 
     elif network_resolution == "medium_low":
 
-        cf = '["highway"~"trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link"]'
+        cf = '["highway"~"trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|living_street|service"]'
 
         road_nw = ox.graph_from_polygon(
             polygon, simplify=False, clean_periphery=True, custom_filter=cf
