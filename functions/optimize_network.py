@@ -21,6 +21,12 @@ import json
 from folium.plugins import MarkerCluster
 
 import gurobipy as gp
+try:
+    from copt_pyomo import *
+    COPT_INSTALLED = True
+except ModuleNotFoundError:
+    COPT_INSTALLED = False
+    print("COPT not installed in this environment")
 
 from jinja2 import Environment, FileSystemLoader  # for creating html report
 import os
@@ -1494,6 +1500,10 @@ def prepare_input(input_data, KB: KB):
         solver = "scip"
     elif solver == "HIGHS":
         solver = "appsi_highs"
+    elif solver == "COPT" and COPT_INSTALLED:
+        solver = "copt_direct"
+    else:
+        raise Exception(f"Solver {solver} not implemented")
 
     names_dict = {v["id"]: v["name"] for v in n_supply_list}
     names_dict.update({v["id"]: v["name"] for v in n_demand_list})

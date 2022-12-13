@@ -9,7 +9,7 @@ dependencies:
   - osmnx==1.1.2
   - scikit-learn==1.0.2
   - numpy==1.22.3
-#  - pyomo=6.4.2
+  - pyomo=6.4.4
   - haversine==2.5.1
   - pandas==1.4.1
   - folium==0.12.1
@@ -21,6 +21,6 @@ dependencies:
   - pydantic=
   - pyscipopt=4.2.0
   - pip:
-    - git+https://github.com/Pyomo/pyomo
     - gurobipy==9.5.1
     - highspy
+    - coptpy
