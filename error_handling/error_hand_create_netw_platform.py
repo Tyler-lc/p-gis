@@ -7,7 +7,7 @@ class PlatformData(BaseModel):
 
     @validator('network_resolution')
     def check_network_resolution(cls, v):
-        netw_res_vals = ["high", "low"]
+        netw_res_vals = ["high", "low", "medium_high", "medium_low"]
         if v not in netw_res_vals:
            raise ValueError(f'Network_resolution must be one of the following:{netw_res_vals}')
         return v
