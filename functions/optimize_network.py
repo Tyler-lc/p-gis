@@ -21,6 +21,12 @@ import json
 from folium.plugins import MarkerCluster
 
 import gurobipy as gp
+try:
+    from copt_pyomo import *
+    COPT_INSTALLED = True
+except ModuleNotFoundError:
+    COPT_INSTALLED = False
+    print("COPT not installed in this environment")
 
 from jinja2 import Environment, FileSystemLoader  # for creating html report
 import os
@@ -240,8 +246,12 @@ def optimize_network(
     ################Pyomo model routing#############
     ################################################
 
-    executable = f"{os.path.dirname(sys.executable)}/scip" if solver == "scip" else None
-    opt = solvers.SolverFactory(solver, executable=executable)
+    solver_kwargs = {}
+    if "highs" not in solver:
+        executable = f"{os.path.dirname(sys.executable)}/scip" if solver == "scip" else None
+        solver_kwargs["executable"] = executable
+
+    opt = solvers.SolverFactory(solver, **solver_kwargs)
     model = ConcreteModel()
 
     ###################################################################
@@ -427,7 +437,7 @@ def optimize_network(
         ]
         N = list(data_py.index)  # list of nodes existing in the solution
 
-        opt = solvers.SolverFactory(solver, executable=executable)
+        opt = solvers.SolverFactory(solver, **solver_kwargs)
         model_nw = ConcreteModel()
 
         ###################################################################
@@ -584,7 +594,7 @@ def optimize_network(
             data_py = data_py.fillna(0)
 
             #############SET UP MODEL###########################
-            opt = solvers.SolverFactory(solver, executable=executable)
+            opt = solvers.SolverFactory(solver, **solver_kwargs)
             model_nw = ConcreteModel()
 
             ###################################################################
@@ -1488,6 +1498,12 @@ def prepare_input(input_data, KB: KB):
         solver = "gurobi_direct"
     elif solver == "SCIP":
         solver = "scip"
+    elif solver == "HIGHS":
+        solver = "appsi_highs"
+    elif solver == "COPT" and COPT_INSTALLED:
+        solver = "copt_direct"
+    else:
+        raise Exception(f"Solver {solver} not implemented")
 
     names_dict = {v["id"]: v["name"] for v in n_supply_list}
     names_dict.update({v["id"]: v["name"] for v in n_demand_list})
