@@ -70,6 +70,7 @@ def optimize_network(
     names_dict: dict,
     time_limit,
     solver,
+    piecewise,
 ):
 
     surface_losses_df = pd.DataFrame(surface_losses_dict)
@@ -288,17 +289,24 @@ def optimize_network(
     Domain_points = [0.0, 0.0, 0.001, 1000.0]
     Range_points = [0.0, 0.0, 1.0, 1.0]
 
-    # here, we are creating a piecewise function to determine the value of "bool" variable
-    # based on the "flow" variable --> if "flow" == 0 then "bool" = 0, "bool" = 1 otherwise
-    model.con = Piecewise(
-        model.edge_set,  # index
-        model.bool,  # y value
-        model.flow,  # x value
-        pw_pts=Domain_points,  # domain of the piecewiese function
-        pw_constr_type="EQ",  # means y=f(x)
-        f_rule=Range_points,  # range of the piecewise function
-        pw_repn="INC",  # indicates the type of piecewise representation to use
-    )
+    if piecewise:
+        # here, we are creating a piecewise function to determine the value of "bool" variable
+        # based on the "flow" variable --> if "flow" == 0 then "bool" = 0, "bool" = 1 otherwise
+        model.con = Piecewise(
+            model.edge_set,  # index
+            model.bool,  # y value
+            model.flow,  # x value
+            pw_pts=Domain_points,  # domain of the piecewiese function
+            pw_constr_type="EQ",  # means y=f(x)
+            f_rule=Range_points,  # range of the piecewise function
+            pw_repn="INC",  # indicates the type of piecewise representation to use
+        )
+    else:
+        # alternative constraint instead of piecewise function above
+        def dependency(model, i, j):
+            return model.flow[i, j] <= max(model.flow_var_set) * model.bool[i, j]
+
+        model.dependency_con = Constraint(model.edge_set, rule=dependency)
 
     ###################################################################
     ######################CONSTRAINT###################################
@@ -356,7 +364,7 @@ def optimize_network(
         )  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
 
     ## Error handling
-    results = opt.solve(model, tee=False)
+    results = opt.solve(model, tee=True)
     if results.solver.termination_condition == TerminationCondition.infeasible:
         raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
 
@@ -1327,6 +1335,7 @@ def run_optimize_network(input_data, KB: KB):
         names_dict,
         time_limit,
         solver,
+        piecewise,
     ) = prepare_input(input_data, KB)
 
     (
@@ -1366,6 +1375,7 @@ def run_optimize_network(input_data, KB: KB):
         names_dict=names_dict,
         time_limit=time_limit,
         solver=solver,
+        piecewise=piecewise,
     )
 
     return prepare_output_optnw(
@@ -1489,6 +1499,8 @@ def prepare_input(input_data, KB: KB):
     elif solver == "SCIP":
         solver = "scip"
 
+    piecewise = get_value(platform, "piecewise", True)
+
     names_dict = {v["id"]: v["name"] for v in n_supply_list}
     names_dict.update({v["id"]: v["name"] for v in n_demand_list})
 
@@ -1540,6 +1552,7 @@ def prepare_input(input_data, KB: KB):
         names_dict,
         time_limit,
         solver,
+        piecewise,
     )
 
 
