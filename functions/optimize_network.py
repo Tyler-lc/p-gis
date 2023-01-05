@@ -1433,6 +1433,8 @@ def prepare_input(input_data, KB: KB):
 
     # get the grid specific source from the CF and add it to supply list
     n_grid_specific = get_value(cf_module, "n_grid_specific", [])
+    if n_grid_specific[0]["cap"] == 0:
+        n_grid_specific[0]["cap"] = 1
     n_supply_list.extend(n_grid_specific)
 
     # get the heat storages from the CF and add them to supply and demand lists
