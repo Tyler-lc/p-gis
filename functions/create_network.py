@@ -65,7 +65,7 @@ def create_network(
                 del n_supply_dict[i]
 
         Sink_list_TEO = ex_cap.copy()[ex_cap["classification_type"] == "sink"]
-        Sink_list_TEO["sum"] = Sink_list_TEO.iloc[:, 3:-1].sum(axis=1)
+        Sink_list_TEO["sum"] = Sink_list_TEO.iloc[:, 3:].sum(axis=1)
         Sink_list_TEO = Sink_list_TEO[Sink_list_TEO["sum"] > 0]
         Sink_list_TEO = list(Sink_list_TEO["number"])
 
