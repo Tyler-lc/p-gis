@@ -1,8 +1,8 @@
 from pydantic import BaseModel, StrictFloat, StrictInt, validator, StrictStr
-from typing import List, Dict
+from typing import List, Dict, Union
 
 class in_cap(BaseModel):
-    source_sink: None
+    source_sink: Union[str, None]
     classification_type: StrictStr
     number: StrictInt
 
