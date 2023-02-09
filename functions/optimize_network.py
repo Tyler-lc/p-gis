@@ -1525,11 +1525,6 @@ def prepare_input(input_data, KB: KB):
     ex_cap_cols[3:] = ex_cap_cols[3:].astype(int)
     ex_cap.columns = ex_cap_cols
 
-    if len(ex_cap) != 0:
-        ex_cap.iloc[:, 3 : len(ex_cap.columns)] = (
-            ex_cap.iloc[:, 3 : len(ex_cap.columns)] / 1000
-        )
-
     return (
         nodes,
         edges,
