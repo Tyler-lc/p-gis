@@ -21,8 +21,10 @@ import json
 from folium.plugins import MarkerCluster
 
 import gurobipy as gp
+
 try:
     from copt_pyomo import *
+
     COPT_INSTALLED = True
 except ModuleNotFoundError:
     COPT_INSTALLED = False
@@ -248,7 +250,9 @@ def optimize_network(
 
     solver_kwargs = {}
     if "highs" not in solver:
-        executable = f"{os.path.dirname(sys.executable)}/scip" if solver == "scip" else None
+        executable = (
+            f"{os.path.dirname(sys.executable)}/scip" if solver == "scip" else None
+        )
         solver_kwargs["executable"] = executable
 
     opt = solvers.SolverFactory(solver, **solver_kwargs)
@@ -1494,7 +1498,7 @@ def prepare_input(input_data, KB: KB):
     invest_pumps = get_value(
         platform, "invest_pumps", KB.get("parameters_default.invest_pumps")
     )
-    time_limit = get_value(platform, "time_limit", 0)
+    time_limit = get_value(platform, "time_limit", 120)
     solver = get_value(platform, "solver", "GUROBI")
     if solver == "GUROBI":
         solver = "gurobi_direct"
