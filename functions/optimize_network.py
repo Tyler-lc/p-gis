@@ -376,12 +376,8 @@ def optimize_network(
 
     ## Error handling
     results = opt.solve(model, tee=False)
-
     if results.solver.termination_condition == TerminationCondition.infeasible:
         raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
-
-    if results.solver.termination_condition == TerminationCondition.maxTimeLimit:
-        raise ModuleRuntimeException(code="2.5.1", msg="Maximum time limit exceeded!")
 
     # model.result.expr()
 
