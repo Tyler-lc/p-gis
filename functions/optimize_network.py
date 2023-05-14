@@ -362,12 +362,17 @@ def optimize_network(
             model.flow[i]
 
     ###########SOLVE MODEL############################################
-    if time_limit == 0:
-        pass
-    else:
-        opt.options["timelimit"] = (
-            time_limit * 60
-        )  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
+    if time_limit:
+        if "gurobi" in solver:
+            opt.options["TimeLimit"] = time_limit * 60
+        elif "scip" in solver:
+            opt.options["limits/time"] = time_limit * 60
+        elif "highs" in solver:
+            opt.options["time_limit"] = time_limit * 60
+        elif "copt" in solver:
+            opt.options["TimeLimit"] = time_limit * 60
+
+        ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
 
     ## Error handling
     results = opt.solve(model, tee=False)
