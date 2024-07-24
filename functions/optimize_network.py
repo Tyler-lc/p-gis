@@ -6,6 +6,11 @@
 ################################################
 ################Packages to load################
 ################################################
+import sys
+import os
+
+sys.path.append("c:\\VSCode_python\\p_gis\\p-gis")
+
 
 import jsonpickle
 import osmnx as ox
@@ -22,28 +27,28 @@ from folium.plugins import MarkerCluster
 
 import gurobipy as gp
 
-try:
-    from copt_pyomo import *
+# try:
+#     from copt_pyomo import *
 
-    COPT_INSTALLED = True
-except ModuleNotFoundError:
-    COPT_INSTALLED = False
-    print("COPT not installed in this environment")
+#     COPT_INSTALLED = True
+# except ModuleNotFoundError:
+#     COPT_INSTALLED = False
+#     print("COPT not installed in this environment")
 
 from jinja2 import Environment, FileSystemLoader  # for creating html report
 import os
 import sys
 
-from ..utilities.kb import KB
-from ..utilities.integration import get_value
+from utilities.kb import KB
+from utilities.integration import get_value
 
 from pydantic import ValidationError
-from ..error_handling.error_hand_opt_netw_gis import Gisdata
-from ..error_handling.error_hand_opt_netw_platform import PlatformData
-from ..error_handling.error_hand_cf import CFData
-from ..error_handling.error_hand_teo import TEOData, TEOData2
-from ..error_handling.module_validation_exception import ModuleValidationException
-from ..error_handling.module_runtime_exception import ModuleRuntimeException
+from error_handling.error_hand_opt_netw_gis import Gisdata
+from error_handling.error_hand_opt_netw_platform import PlatformData
+from error_handling.error_hand_cf import CFData
+from error_handling.error_hand_teo import TEOData, TEOData2
+from error_handling.module_validation_exception import ModuleValidationException
+from error_handling.module_runtime_exception import ModuleRuntimeException
 
 ################################################
 ################Optimize Network################
@@ -129,7 +134,7 @@ def optimize_network(
     ################################################################################
     #########INVERT ALL KEYS TO BE SURE EACH EDGE EXISTS IN BOTH DIRECTIONS#########
 
-    for (i, j) in road_nw_data.keys():
+    for i, j in road_nw_data.keys():
         road_nw_data[(j, i)] = road_nw_data[(i, j)]
 
     # END OF road_nw usage
@@ -387,7 +392,7 @@ def optimize_network(
 
     result_graph = {k: v for k, v in result_data.items() if v > 0.1}
 
-    for (i, j) in list(result_graph):
+    for i, j in list(result_graph):
         result_graph[(j, i)] = result_graph[(i, j)]
 
     ############GET THE PIPE DIAMETER FOR EVERY EDGE OF EXISTING GRID####
@@ -748,7 +753,7 @@ def optimize_network(
         ###################################################################
         #############FIND EDGES WITH NO FLOW ON IT#########################
 
-        for (i, j) in result_data.keys():
+        for i, j in result_data.keys():
             if (result_data[(i, j)] + result_data[(j, i)]) == 0:
                 result_data[(i, j)] = 99999
             else:
@@ -1511,8 +1516,8 @@ def prepare_input(input_data, KB: KB):
         solver = "scip"
     elif solver == "HIGHS":
         solver = "appsi_highs"
-    elif solver == "COPT" and COPT_INSTALLED:
-        solver = "copt_direct"
+    # elif solver == "COPT" and COPT_INSTALLED:
+    #     solver = "copt_direct"
     else:
         raise Exception(f"Solver {solver} not implemented")
 

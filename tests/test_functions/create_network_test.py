@@ -3,9 +3,11 @@ import networkx as nx
 import pandas as pd
 from shapely.geometry import Polygon, LineString, Point
 from geopandas import GeoSeries
+import sys
 
-from ...utilities.create_ex_grid import create_ex_grid
-from ...functions.create_network import create_network
+sys.path.append("c:\\VSCode_python\\p_gis\\p-gis")
+from utilities.create_ex_grid import create_ex_grid
+from functions.create_network import create_network
 
 
 def createNetworkTest():

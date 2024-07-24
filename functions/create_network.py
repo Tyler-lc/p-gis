@@ -6,6 +6,11 @@
 ################################################
 ################Packages to load################
 ################################################
+import sys
+import os
+
+sys.path.append("c:\\VSCode_python\\p_gis\\p-gis")
+
 
 import osmnx as ox
 import networkx as nx
@@ -17,16 +22,16 @@ import haversine as hs
 from shapely.geometry import Polygon, Point
 import sklearn
 
-from ..utilities.kb import KB
+from utilities.kb import KB
 
-from ..utilities.create_ex_grid import create_ex_grid
-from ..utilities.integration import get_value
+from utilities.create_ex_grid import create_ex_grid
+from utilities.integration import get_value
 
 from pydantic import ValidationError
-from ..error_handling.error_hand_create_netw_platform import PlatformData
-from ..error_handling.error_hand_cf import CFData
-from ..error_handling.error_hand_teo import TEOData, TEOData2
-from ..error_handling.module_validation_exception import ModuleValidationException
+from error_handling.error_hand_create_netw_platform import PlatformData
+from error_handling.error_hand_cf import CFData
+from error_handling.error_hand_teo import TEOData, TEOData2
+from error_handling.module_validation_exception import ModuleValidationException
 
 ################################################
 ################Create Network  ################
