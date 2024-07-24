@@ -1,16 +1,14 @@
 from pandas import to_datetime
 from pydantic import (
+    field_validator,
+    Field,
     BaseModel,
-    ConstrainedFloat,
-    StrictFloat,
-    StrictInt,
-    confloat,
-    validator,
     StrictStr,
     PositiveFloat,
     NonNegativeFloat,
 )
 from typing import List
+from typing_extensions import Annotated
 
 
 class surface_losses(BaseModel):
@@ -21,8 +19,8 @@ class surface_losses(BaseModel):
 class PlatformData(BaseModel):
     network_resolution: StrictStr
     water_den: PositiveFloat
-    factor_street_terrain: confloat(gt=0, lt=1)
-    factor_street_overland: confloat(gt=0, lt=1)
+    factor_street_terrain: Annotated[float, Field(gt=0, lt=1)]
+    factor_street_overland: Annotated[float, Field(gt=0, lt=1)]
     heat_capacity: PositiveFloat
     flow_temp: PositiveFloat
     return_temp: PositiveFloat
@@ -41,7 +39,8 @@ class PlatformData(BaseModel):
 
     surface_losses_dict: List[surface_losses]
 
-    @validator("network_resolution")
+    @field_validator("network_resolution")
+    @classmethod
     def check_network_resolution(cls, v):
         netw_res_vals = ["high", "low", "medium_high", "medium_low"]
         if v not in netw_res_vals:
@@ -50,7 +49,8 @@ class PlatformData(BaseModel):
             )
         return v
 
-    @validator("ex_grid_data_json", check_fields=False)
+    @field_validator("ex_grid_data_json", check_fields=False)
+    @classmethod
     # TODO complete this after existing grid data upload is implemented in the platform
     def check_ex_grid_data(cls, v):
         "ex_grid data check"

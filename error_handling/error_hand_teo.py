@@ -1,8 +1,8 @@
-from pydantic import BaseModel, StrictFloat, StrictInt, validator, StrictStr
+from pydantic import field_validator, BaseModel, StrictFloat, StrictInt, StrictStr
 from typing import List, Dict, Union
 
 class in_cap(BaseModel):
-    source_sink: Union[str, None]
+    source_sink: Union[str, None] = None
     classification_type: StrictStr
     number: StrictInt
 
@@ -12,7 +12,8 @@ class TEOData(BaseModel):
 class TEOData2(BaseModel):
     ex_cap: list
     
-    @validator('ex_cap')
+    @field_validator('ex_cap')
+    @classmethod
     def validateExCapStruct(cls, v):
         # print(v)
         for item in v:

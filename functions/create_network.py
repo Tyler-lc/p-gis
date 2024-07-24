@@ -220,7 +220,7 @@ def create_network(
         ################################################################################
         ######FIND CLOSEST POINTS BETWEEN OSM GRAPH AND EX GRID#########################
 
-        dist = sklearn.neighbors.DistanceMetric.get_metric("haversine")
+        dist = sklearn.metrics.DistanceMetric.get_metric("haversine")
         nodes_ex = ox.graph_to_gdfs(ex_grid, nodes=True, edges=False)
         nodes_rn = ox.graph_to_gdfs(road_nw, nodes=True, edges=False)
 
@@ -428,7 +428,7 @@ def prepare_input(input_data, KB: KB):
         platform, "network_resolution", KB.get("parameters_default.network_resolution")
     )
 
-    polygon = get_value(platform, "polygon", [])
+    polygon = get_value(platform, "coords_list", [])
     ## From CF-Module
     ## - n_supply_list
     ## - n_demand_list
